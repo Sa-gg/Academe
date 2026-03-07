@@ -1,0 +1,83 @@
+========================================================
+EVIDENCE 02 — Validation Errors (400)
+========================================================
+
+--------------------------------------------------------
+Test: POST student — missing name field
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8001/api/students \
+    -H "Content-Type: application/json" \
+    -d '{"email":"noname@example.com"}'
+
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "error": "VALIDATION_ERROR",
+  "message": "The name field is required."
+}
+
+--------------------------------------------------------
+Test: POST student — missing email field
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8001/api/students \
+    -H "Content-Type: application/json" \
+    -d '{"name":"No Email"}'
+
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "error": "VALIDATION_ERROR",
+  "message": "The email field is required."
+}
+
+--------------------------------------------------------
+Test: POST student — invalid email format
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8001/api/students \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Bad Email","email":"not-an-email"}'
+
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "error": "VALIDATION_ERROR",
+  "message": "The email field must be a valid email address."
+}
+
+--------------------------------------------------------
+Test: POST enrollment — missing student_id
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8003/api/enrollments \
+    -H "Content-Type: application/json" \
+    -d '{"course_id":1}'
+
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "error": "VALIDATION_ERROR",
+  "message": "The student id field is required."
+}
+
+--------------------------------------------------------
+Test: POST enrollment — missing course_id
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8003/api/enrollments \
+    -H "Content-Type: application/json" \
+    -d '{"student_id":1}'
+
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "error": "VALIDATION_ERROR",
+  "message": "The course id field is required."
+}

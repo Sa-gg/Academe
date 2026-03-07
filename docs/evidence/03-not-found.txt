@@ -1,0 +1,79 @@
+========================================================
+EVIDENCE 03 — Not Found (404)
+========================================================
+
+--------------------------------------------------------
+Test: GET nonexistent student
+--------------------------------------------------------
+
+$ curl -i http://localhost:8001/api/students/9999
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{
+  "error": "NOT_FOUND",
+  "message": "Student with id 9999 does not exist"
+}
+
+--------------------------------------------------------
+Test: GET nonexistent course
+--------------------------------------------------------
+
+$ curl -i http://localhost:8002/api/courses/9999
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{
+  "error": "NOT_FOUND",
+  "message": "Course with id 9999 does not exist"
+}
+
+--------------------------------------------------------
+Test: GET nonexistent enrollment
+--------------------------------------------------------
+
+$ curl -i http://localhost:8003/api/enrollments/9999
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{
+  "error": "NOT_FOUND",
+  "message": "Enrollment with id 9999 does not exist"
+}
+
+--------------------------------------------------------
+Test: POST enrollment with nonexistent student_id
+(student-service returns 404 → enrollment-service returns STUDENT_NOT_FOUND)
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8003/api/enrollments \
+    -H "Content-Type: application/json" \
+    -d '{"student_id":9999,"course_id":1}'
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{
+  "error": "STUDENT_NOT_FOUND",
+  "message": "Student with id 9999 does not exist"
+}
+
+--------------------------------------------------------
+Test: POST enrollment with nonexistent course_id
+(course-service returns 404 → enrollment-service returns COURSE_NOT_FOUND)
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8003/api/enrollments \
+    -H "Content-Type: application/json" \
+    -d '{"student_id":1,"course_id":9999}'
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{
+  "error": "COURSE_NOT_FOUND",
+  "message": "Course with id 9999 does not exist"
+}

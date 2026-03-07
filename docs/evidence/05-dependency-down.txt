@@ -1,0 +1,48 @@
+========================================================
+EVIDENCE 05 — Dependency Down (503)
+========================================================
+
+NOTE: To reproduce, stop the target service before running the curl command.
+      The enrollment-service wraps all Http::timeout(5) calls in
+      try/catch (\Illuminate\Http\Client\ConnectionException).
+
+--------------------------------------------------------
+Test: POST enrollment while student-service (:8001) is OFFLINE
+Steps:
+  1. Stop student-service (Ctrl+C on its terminal)
+  2. Keep course-service and enrollment-service running
+  3. Run this curl command
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8003/api/enrollments \
+    -H "Content-Type: application/json" \
+    -d '{"student_id":1,"course_id":1}'
+
+HTTP/1.1 503 Service Unavailable
+Content-Type: application/json
+
+{
+  "error": "SERVICE_UNAVAILABLE",
+  "message": "A dependency service is not responding"
+}
+
+--------------------------------------------------------
+Test: POST enrollment while course-service (:8002) is OFFLINE
+Steps:
+  1. Student-service must be running (so the student check passes first)
+  2. Stop course-service (Ctrl+C on its terminal)
+  3. Keep student-service and enrollment-service running
+  4. Run this curl command
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8003/api/enrollments \
+    -H "Content-Type: application/json" \
+    -d '{"student_id":1,"course_id":1}'
+
+HTTP/1.1 503 Service Unavailable
+Content-Type: application/json
+
+{
+  "error": "SERVICE_UNAVAILABLE",
+  "message": "A dependency service is not responding"
+}

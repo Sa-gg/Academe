@@ -1,0 +1,45 @@
+========================================================
+EVIDENCE 06 — Dependency Timeout (504)
+========================================================
+
+NOTE: To reproduce, add a temporary sleep() to the student-service controller
+      to simulate a slow response beyond the 5-second timeout budget.
+
+      In microservices/student-service/app/Http/Controllers/StudentController.php
+      add this line inside show() before the find() call:
+          sleep(10);  // Simulate slow response
+      Then restart student-service and run the curl command below.
+      Remove sleep(10) after testing.
+
+--------------------------------------------------------
+Test: POST enrollment while student-service responds slowly (> 5 seconds)
+      The Http::timeout(5) call throws a ConnectionException with "timed out"
+      in the message, which the catch block maps to 504.
+--------------------------------------------------------
+
+$ curl -i -X POST http://localhost:8003/api/enrollments \
+    -H "Content-Type: application/json" \
+    -d '{"student_id":1,"course_id":1}'
+
+HTTP/1.1 504 Gateway Timeout
+Content-Type: application/json
+
+{
+  "error": "GATEWAY_TIMEOUT",
+  "message": "Dependency service took too long to respond"
+}
+
+--------------------------------------------------------
+Implementation in EnrollmentController.php:
+--------------------------------------------------------
+
+    private function serviceError(\Illuminate\Http\Client\ConnectionException $e)
+    {
+        $isTimed = str_contains($e->getMessage(), 'timed out');
+        return response()->json([
+            'error'   => $isTimed ? 'GATEWAY_TIMEOUT' : 'SERVICE_UNAVAILABLE',
+            'message' => $isTimed
+                ? 'Dependency service took too long to respond'
+                : 'A dependency service is not responding',
+        ], $isTimed ? 504 : 503);
+    }
