@@ -1,82 +1,88 @@
 ========================================================
 EVIDENCE 03 — Not Found (404)
 ========================================================
-Test Date: March 11, 2026
-Pre-conditions: All three services running with seeded data.
+Test Date: March 15, 2026
+Pre-conditions:
+  - All three services running with sequential test data.
+  - Student ID 4 (Sequential Student Updated) exists.
+  - Course ID 4 (Sequential Course Updated) exists.
+  - Enrollment ID 1 (student 4 → course 4) exists.
+  - IDs 9999 are guaranteed not to exist in any service.
 
 ========================================================
 Student Service — port 8001
 ========================================================
 
 --------------------------------------------------------
-Test: GET nonexistent student → 404
+Step 15 — GET nonexistent student → 404
 --------------------------------------------------------
 
-$ curl -s http://localhost:8001/api/students/999
+$ curl -i http://localhost:8001/api/students/9999
 
 HTTP/1.1 404 Not Found
 Content-Type: application/json
 
-{"error":"NOT_FOUND","message":"Student with id 999 does not exist"}
+{"error":"NOT_FOUND","message":"Student with id 9999 does not exist"}
 
 ========================================================
 Course Service — port 8002
 ========================================================
 
 --------------------------------------------------------
-Test: GET nonexistent course → 404
+Step 16 — GET nonexistent course → 404
 --------------------------------------------------------
 
-$ curl -s http://localhost:8002/api/courses/999
+$ curl -i http://localhost:8002/api/courses/9999
 
 HTTP/1.1 404 Not Found
 Content-Type: application/json
 
-{"error":"NOT_FOUND","message":"Course with id 999 does not exist"}
+{"error":"NOT_FOUND","message":"Course with id 9999 does not exist"}
 
 ========================================================
 Enrollment Service — port 8003
 ========================================================
 
 --------------------------------------------------------
-Test: GET nonexistent enrollment → 404
+Step 17 — GET nonexistent enrollment → 404
 --------------------------------------------------------
 
-$ curl -s http://localhost:8003/api/enrollments/999
+$ curl -i http://localhost:8003/api/enrollments/9999
 
 HTTP/1.1 404 Not Found
 Content-Type: application/json
 
-{"error":"NOT_FOUND","message":"Enrollment with id 999 does not exist"}
+{"error":"NOT_FOUND","message":"Enrollment with id 9999 does not exist"}
 
 --------------------------------------------------------
-Test: POST enrollment with nonexistent student_id (cross-service 404) → 404
+Step 20 — POST enrollment with nonexistent student_id (cross-service 404) → 404
 --------------------------------------------------------
 
-$ curl -s -X POST http://localhost:8003/api/enrollments \
+$ curl -i -X POST http://localhost:8003/api/enrollments \
     -H "Content-Type: application/json" \
-    -d '{"student_id":999,"course_id":1}'
+    -d '{"student_id":9999,"course_id":4}'
 
 HTTP/1.1 404 Not Found
 Content-Type: application/json
 
-{"error":"STUDENT_NOT_FOUND","message":"Student with id 999 does not exist"}
+{"error":"STUDENT_NOT_FOUND","message":"Student with id 9999 does not exist"}
 
-Note: enrollment-service makes HTTP GET to student-service (:8001),
-receives 404, and translates it to STUDENT_NOT_FOUND for the caller.
+Note: enrollment-service calls GET http://localhost:8001/api/students/9999,
+      receives 404, and translates it to STUDENT_NOT_FOUND before course check.
 
 --------------------------------------------------------
-Test: POST enrollment with nonexistent course_id (cross-service 404) → 404
+Step 21 — POST enrollment with nonexistent course_id (cross-service 404) → 404
 --------------------------------------------------------
 
-$ curl -s -X POST http://localhost:8003/api/enrollments \
+$ curl -i -X POST http://localhost:8003/api/enrollments \
     -H "Content-Type: application/json" \
-    -d '{"student_id":1,"course_id":999}'
+    -d '{"student_id":4,"course_id":9999}'
 
 HTTP/1.1 404 Not Found
 Content-Type: application/json
 
-{"error":"COURSE_NOT_FOUND","message":"Course with id 999 does not exist"}
+{"error":"COURSE_NOT_FOUND","message":"Course with id 9999 does not exist"}
 
-Note: enrollment-service makes HTTP GET to course-service (:8002),
-receives 404, and translates it to COURSE_NOT_FOUND for the caller.
+Note: enrollment-service first calls GET http://localhost:8001/api/students/4 (200 OK),
+      then calls GET http://localhost:8002/api/courses/9999, receives 404,
+      and translates it to COURSE_NOT_FOUND.

@@ -1,184 +1,214 @@
 ========================================================
-EVIDENCE 01 — Happy Path
+EVIDENCE 01 — Happy Path (Sequential CRUD)
 ========================================================
-Test Date: March 11, 2026
-Pre-conditions: All databases freshly migrated and seeded.
-  - student-service: 3 students (Juan dela Cruz, Maria Santos, Pedro Reyes)
-  - course-service: 3 courses (Introduction to Programming, Web Development, Database Systems)
-  - enrollment-service: 3 enrollments (student 1→course 1, student 2→course 2, student 3→course 3)
+Test Date: March 15, 2026
+Pre-conditions:
+  - All databases freshly migrated and seeded (migrate:fresh --seed)
+  - student-service: 3 seeded students, IDs 1–3
+  - course-service: 3 seeded courses, IDs 1–3
+  - enrollment-service: empty table
+  - All three services running on ports 8001, 8002, 8003
 
 ========================================================
 Student Service — port 8001
 ========================================================
 
 --------------------------------------------------------
-Test: GET all students → 200
+Step 1 — GET all students → 200
 --------------------------------------------------------
 
-$ curl -s http://localhost:8001/api/students
+$ curl -i http://localhost:8001/api/students
 
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{"data":[{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},{"id":2,"name":"Maria Santos","email":"maria@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},{"id":3,"name":"Pedro Reyes","email":"pedro@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"}],"message":"success"}
+{"data":[{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-15T03:46:17.000000Z","updated_at":"2026-03-15T03:46:17.000000Z"},{"id":2,"name":"Maria Santos","email":"maria@example.com","created_at":"2026-03-15T03:46:17.000000Z","updated_at":"2026-03-15T03:46:17.000000Z"},{"id":3,"name":"Pedro Reyes","email":"pedro@example.com","created_at":"2026-03-15T03:46:17.000000Z","updated_at":"2026-03-15T03:46:17.000000Z"}],"message":"success"}
 
 --------------------------------------------------------
-Test: GET student by id → 200
+Step 3 — POST create student → 201
 --------------------------------------------------------
 
-$ curl -s http://localhost:8001/api/students/1
-
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"data":{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"message":"success"}
-
---------------------------------------------------------
-Test: POST create student → 201
---------------------------------------------------------
-
-$ curl -s -X POST http://localhost:8001/api/students \
+$ curl -i -X POST http://localhost:8001/api/students \
     -H "Content-Type: application/json" \
-    -d '{"name":"Ana Reyes","email":"ana@example.com"}'
+    -d '{"name":"Sequential Student","email":"seq.student@example.com"}'
 
 HTTP/1.1 201 Created
 Content-Type: application/json
 
-{"data":{"name":"Ana Reyes","email":"ana@example.com","updated_at":"2026-03-11T13:25:50.000000Z","created_at":"2026-03-11T13:25:50.000000Z","id":4},"message":"created"}
+{"data":{"name":"Sequential Student","email":"seq.student@example.com","updated_at":"2026-03-15T04:05:10.000000Z","created_at":"2026-03-15T04:05:10.000000Z","id":4},"message":"created"}
 
 --------------------------------------------------------
-Test: PUT update student → 200
+Step 4 — GET created student by ID → 200
 --------------------------------------------------------
 
-$ curl -s -X PUT http://localhost:8001/api/students/4 \
+$ curl -i http://localhost:8001/api/students/4
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"data":{"id":4,"name":"Sequential Student","email":"seq.student@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:10.000000Z"},"message":"success"}
+
+--------------------------------------------------------
+Step 5 — PUT update student → 200
+--------------------------------------------------------
+
+$ curl -i -X PUT http://localhost:8001/api/students/4 \
     -H "Content-Type: application/json" \
-    -d '{"name":"Ana Garcia","email":"ana.garcia@example.com"}'
+    -d '{"name":"Sequential Student Updated","email":"seq.student.updated@example.com"}'
 
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{"data":{"id":4,"name":"Ana Garcia","email":"ana.garcia@example.com","created_at":"2026-03-11T13:25:50.000000Z","updated_at":"2026-03-11T13:25:50.000000Z"},"message":"updated"}
-
---------------------------------------------------------
-Test: DELETE student → 200
---------------------------------------------------------
-
-$ curl -s -X DELETE http://localhost:8001/api/students/4
-
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"data":null,"message":"deleted"}
+{"data":{"id":4,"name":"Sequential Student Updated","email":"seq.student.updated@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:30.000000Z"},"message":"updated"}
 
 ========================================================
 Course Service — port 8002
 ========================================================
 
 --------------------------------------------------------
-Test: GET all courses → 200
+Step 2 — GET all courses → 200
 --------------------------------------------------------
 
-$ curl -s http://localhost:8002/api/courses
+$ curl -i http://localhost:8002/api/courses
 
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{"data":[{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},{"id":2,"title":"Web Development","description":"Build modern web applications using current technologies.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},{"id":3,"title":"Database Systems","description":"Understand database design, SQL, and data management.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"}],"message":"success"}
+{"data":[{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-15T03:46:19.000000Z","updated_at":"2026-03-15T03:46:19.000000Z"},{"id":2,"title":"Web Development","description":"Build modern web applications using current technologies.","created_at":"2026-03-15T03:46:19.000000Z","updated_at":"2026-03-15T03:46:19.000000Z"},{"id":3,"title":"Database Systems","description":"Understand database design, SQL, and data management.","created_at":"2026-03-15T03:46:19.000000Z","updated_at":"2026-03-15T03:46:19.000000Z"}],"message":"success"}
 
 --------------------------------------------------------
-Test: GET course by id → 200
+Step 6 — POST create course → 201
 --------------------------------------------------------
 
-$ curl -s http://localhost:8002/api/courses/1
-
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"data":{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"message":"success"}
-
---------------------------------------------------------
-Test: POST create course → 201
---------------------------------------------------------
-
-$ curl -s -X POST http://localhost:8002/api/courses \
+$ curl -i -X POST http://localhost:8002/api/courses \
     -H "Content-Type: application/json" \
-    -d '{"title":"Data Structures","description":"Learn about data structures and algorithms"}'
+    -d '{"title":"Sequential Course","description":"Course used for ordered testing"}'
 
 HTTP/1.1 201 Created
 Content-Type: application/json
 
-{"data":{"title":"Data Structures","description":"Learn about data structures and algorithms","updated_at":"2026-03-11T13:26:47.000000Z","created_at":"2026-03-11T13:26:47.000000Z","id":4},"message":"created"}
+{"data":{"title":"Sequential Course","description":"Course used for ordered testing","updated_at":"2026-03-15T04:05:45.000000Z","created_at":"2026-03-15T04:05:45.000000Z","id":4},"message":"created"}
 
 --------------------------------------------------------
-Test: PUT update course → 200
+Step 7 — GET created course by ID → 200
 --------------------------------------------------------
 
-$ curl -s -X PUT http://localhost:8002/api/courses/4 \
+$ curl -i http://localhost:8002/api/courses/4
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"data":{"id":4,"title":"Sequential Course","description":"Course used for ordered testing","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:05:45.000000Z"},"message":"success"}
+
+--------------------------------------------------------
+Step 8 — PUT update course → 200
+--------------------------------------------------------
+
+$ curl -i -X PUT http://localhost:8002/api/courses/4 \
     -H "Content-Type: application/json" \
-    -d '{"title":"Advanced Data Structures","description":"Deep dive into algorithms"}'
+    -d '{"title":"Sequential Course Updated","description":"Updated for sequential test"}'
 
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{"data":{"id":4,"title":"Advanced Data Structures","description":"Deep dive into algorithms","created_at":"2026-03-11T13:26:47.000000Z","updated_at":"2026-03-11T13:26:47.000000Z"},"message":"updated"}
-
---------------------------------------------------------
-Test: DELETE course → 200
---------------------------------------------------------
-
-$ curl -s -X DELETE http://localhost:8002/api/courses/4
-
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"data":null,"message":"deleted"}
+{"data":{"id":4,"title":"Sequential Course Updated","description":"Updated for sequential test","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:06:00.000000Z"},"message":"updated"}
 
 ========================================================
 Enrollment Service — port 8003
 ========================================================
 
 --------------------------------------------------------
-Test: GET all enrollments (enriched with student + course) → 200
+Step 9 — POST create enrollment → 201
 --------------------------------------------------------
 
-$ curl -s http://localhost:8003/api/enrollments
-
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"data":[{"id":1,"student":{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"},{"id":2,"student":{"id":2,"name":"Maria Santos","email":"maria@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":2,"title":"Web Development","description":"Build modern web applications using current technologies.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"},{"id":3,"student":{"id":3,"name":"Pedro Reyes","email":"pedro@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":3,"title":"Database Systems","description":"Understand database design, SQL, and data management.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"}],"message":"success"}
-
---------------------------------------------------------
-Test: GET enrollment by id (enriched) → 200
---------------------------------------------------------
-
-$ curl -s http://localhost:8003/api/enrollments/1
-
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"data":{"id":1,"student":{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"},"message":"success"}
-
---------------------------------------------------------
-Test: POST create enrollment → 201
---------------------------------------------------------
-
-$ curl -s -X POST http://localhost:8003/api/enrollments \
+$ curl -i -X POST http://localhost:8003/api/enrollments \
     -H "Content-Type: application/json" \
-    -d '{"student_id":1,"course_id":2}'
+    -d '{"student_id":4,"course_id":4}'
 
 HTTP/1.1 201 Created
 Content-Type: application/json
 
-{"data":{"student_id":1,"course_id":2,"updated_at":"2026-03-11T13:27:17.000000Z","created_at":"2026-03-11T13:27:17.000000Z","id":4},"message":"created"}
+{"data":{"student_id":4,"course_id":4,"updated_at":"2026-03-15T04:06:15.000000Z","created_at":"2026-03-15T04:06:15.000000Z","id":1},"message":"created"}
 
 --------------------------------------------------------
-Test: DELETE enrollment → 200
+Step 10 — GET enrollment by ID (enriched) → 200
 --------------------------------------------------------
 
-$ curl -s -X DELETE http://localhost:8003/api/enrollments/4
+$ curl -i http://localhost:8003/api/enrollments/1
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"data":{"id":1,"student":{"id":4,"name":"Sequential Student Updated","email":"seq.student.updated@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:30.000000Z"},"course":{"id":4,"title":"Sequential Course Updated","description":"Updated for sequential test","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:06:00.000000Z"},"enrolled_at":"2026-03-15T04:06:15.000000Z"},"message":"success"}
+
+Note: enrollment-service fetches student and course from their respective services
+      via HTTP calls, demonstrating cross-service communication.
+
+--------------------------------------------------------
+Step 11 — GET enrollments by student ID → 200
+--------------------------------------------------------
+
+$ curl -i http://localhost:8003/api/enrollments/student/4
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"data":[{"id":1,"student":{"id":4,"name":"Sequential Student Updated","email":"seq.student.updated@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:30.000000Z"},"course":{"id":4,"title":"Sequential Course Updated","description":"Updated for sequential test","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:06:00.000000Z"},"enrolled_at":"2026-03-15T04:06:15.000000Z"}],"message":"success"}
+
+--------------------------------------------------------
+Step 24 — DELETE enrollment → 200
+--------------------------------------------------------
+
+$ curl -i -X DELETE http://localhost:8003/api/enrollments/1
 
 HTTP/1.1 200 OK
 Content-Type: application/json
 
 {"data":null,"message":"deleted"}
+
+--------------------------------------------------------
+Step 25 — DELETE student → 200
+--------------------------------------------------------
+
+$ curl -i -X DELETE http://localhost:8001/api/students/4
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"data":null,"message":"deleted"}
+
+--------------------------------------------------------
+Step 26 — DELETE course → 200
+--------------------------------------------------------
+
+$ curl -i -X DELETE http://localhost:8002/api/courses/4
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"data":null,"message":"deleted"}
+
+--------------------------------------------------------
+Step 27 — Verify cleanup: all deleted resources return 404
+--------------------------------------------------------
+
+$ curl -i http://localhost:8001/api/students/4
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"error":"NOT_FOUND","message":"Student with id 4 does not exist"}
+
+$ curl -i http://localhost:8002/api/courses/4
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"error":"NOT_FOUND","message":"Course with id 4 does not exist"}
+
+$ curl -i http://localhost:8003/api/enrollments/1
+
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"error":"NOT_FOUND","message":"Enrollment with id 1 does not exist"}

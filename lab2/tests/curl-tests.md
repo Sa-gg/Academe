@@ -1,676 +1,535 @@
-# Microservices curl Test Suite
+# Lab 2 Sequential curl Test Suite
 
-All commands use `-i` to show response headers. Run all three services first:
-
-```bash
-php artisan serve --port=8001 --chdir=microservices/student-service
-php artisan serve --port=8002 --chdir=microservices/course-service
-php artisan serve --port=8003 --chdir=microservices/enrollment-service
-```
+Tests are ordered so each step has the required data available for the next step.
 
 ---
 
-## 1. Happy Path
+## Pre-conditions (Reset Before Every Run)
 
-### GET all students
+```bash
+cd lab2/services/student-service && php artisan migrate:fresh --seed
+cd ../course-service && php artisan migrate:fresh --seed
+cd ../enrollment-service && php artisan migrate:fresh
+```
+
+Baseline after reset:
+- students: IDs 1–3 seeded (Juan dela Cruz, Maria Santos, Pedro Reyes)
+- courses: IDs 1–3 seeded (Introduction to Programming, Web Development, Database Systems)
+- enrollments: empty table
+
+---
+
+## Service Startup
+
+```bash
+# Terminal 1
+cd lab2/services/student-service && php artisan serve --port=8001
+
+# Terminal 2
+cd lab2/services/course-service && php artisan serve --port=8002
+
+# Terminal 3
+cd lab2/services/enrollment-service && php artisan serve --port=8003
+```
+
+Screenshot required: Terminal 1, 2, and 3 startup banners
+
+---
+
+## Sequential Test Steps (Terminal 4)
+
+---
+
+### Step 1 — GET all students (200)
+
 ```bash
 curl -i http://localhost:8001/api/students
 ```
-**Expected: HTTP 200**
+
+Output: HTTP 200
 ```json
-{"data":[{"id":1,"name":"Juan dela Cruz","email":"juan@example.com",...},...],"message":"success"}
+{"data":[{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-15T03:46:17.000000Z","updated_at":"2026-03-15T03:46:17.000000Z"},{"id":2,"name":"Maria Santos","email":"maria@example.com","created_at":"2026-03-15T03:46:17.000000Z","updated_at":"2026-03-15T03:46:17.000000Z"},{"id":3,"name":"Pedro Reyes","email":"pedro@example.com","created_at":"2026-03-15T03:46:17.000000Z","updated_at":"2026-03-15T03:46:17.000000Z"}],"message":"success"}
 ```
+
+Screenshot required: Terminal 4, Step 1
 
 ---
 
-### GET all courses
+### Step 2 — GET all courses (200)
+
 ```bash
 curl -i http://localhost:8002/api/courses
 ```
-**Expected: HTTP 200**
+
+Output: HTTP 200
 ```json
-{"data":[{"id":1,"title":"Introduction to Programming","description":"..."},...],"message":"success"}
+{"data":[{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-15T03:46:19.000000Z","updated_at":"2026-03-15T03:46:19.000000Z"},{"id":2,"title":"Web Development","description":"Build modern web applications using current technologies.","created_at":"2026-03-15T03:46:19.000000Z","updated_at":"2026-03-15T03:46:19.000000Z"},{"id":3,"title":"Database Systems","description":"Understand database design, SQL, and data management.","created_at":"2026-03-15T03:46:19.000000Z","updated_at":"2026-03-15T03:46:19.000000Z"}],"message":"success"}
 ```
+
+Screenshot required: Terminal 4, Step 2
 
 ---
 
-### POST valid student
+### Step 3 — POST student (201)
+
 ```bash
 curl -i -X POST http://localhost:8001/api/students \
   -H "Content-Type: application/json" \
-  -d '{"name":"Test Student","email":"test@example.com"}'
+  -d '{"name":"Sequential Student","email":"seq.student@example.com"}'
 ```
-**Expected: HTTP 201**
+
+Output: HTTP 201
 ```json
-{"data":{"id":4,"name":"Test Student","email":"test@example.com","created_at":"...","updated_at":"..."},"message":"created"}
+{"data":{"name":"Sequential Student","email":"seq.student@example.com","updated_at":"2026-03-15T04:05:10.000000Z","created_at":"2026-03-15T04:05:10.000000Z","id":4},"message":"created"}
 ```
+
+Screenshot required: Terminal 4, Step 3
 
 ---
 
-### PUT update student
+### Step 4 — GET created student by ID (200)
+
 ```bash
-curl -i -X PUT http://localhost:8001/api/students/1 \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Updated Name","email":"updated@example.com"}'
+curl -i http://localhost:8001/api/students/4
 ```
-**Expected: HTTP 200**
+
+Output: HTTP 200
 ```json
-{"data":{"id":1,"name":"Updated Name","email":"updated@example.com",...},"message":"updated"}
+{"data":{"id":4,"name":"Sequential Student","email":"seq.student@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:10.000000Z"},"message":"success"}
 ```
+
+Screenshot required: Terminal 4, Step 4
 
 ---
 
-### POST valid course
+### Step 5 — PUT update student (200)
+
+```bash
+curl -i -X PUT http://localhost:8001/api/students/4 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Sequential Student Updated","email":"seq.student.updated@example.com"}'
+```
+
+Output: HTTP 200
+```json
+{"data":{"id":4,"name":"Sequential Student Updated","email":"seq.student.updated@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:30.000000Z"},"message":"updated"}
+```
+
+Screenshot required: Terminal 4, Step 5
+
+---
+
+### Step 6 — POST course (201)
+
 ```bash
 curl -i -X POST http://localhost:8002/api/courses \
   -H "Content-Type: application/json" \
-  -d '{"title":"New Course","description":"A new course description"}'
+  -d '{"title":"Sequential Course","description":"Course used for ordered testing"}'
 ```
-**Expected: HTTP 201**
+
+Output: HTTP 201
 ```json
-{"data":{"id":4,"title":"New Course","description":"A new course description",...},"message":"created"}
+{"data":{"title":"Sequential Course","description":"Course used for ordered testing","updated_at":"2026-03-15T04:05:45.000000Z","created_at":"2026-03-15T04:05:45.000000Z","id":4},"message":"created"}
 ```
+
+Screenshot required: Terminal 4, Step 6
 
 ---
 
-### PUT update course
+### Step 7 — GET created course by ID (200)
+
 ```bash
-curl -i -X PUT http://localhost:8002/api/courses/1 \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Updated Title","description":"Updated description"}'
+curl -i http://localhost:8002/api/courses/4
 ```
-**Expected: HTTP 200**
+
+Output: HTTP 200
 ```json
-{"data":{"id":1,"title":"Updated Title","description":"Updated description",...},"message":"updated"}
+{"data":{"id":4,"title":"Sequential Course","description":"Course used for ordered testing","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:05:45.000000Z"},"message":"success"}
 ```
+
+Screenshot required: Terminal 4, Step 7
 
 ---
 
-### POST valid enrollment
+### Step 8 — PUT update course (200)
+
+```bash
+curl -i -X PUT http://localhost:8002/api/courses/4 \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Sequential Course Updated","description":"Updated for sequential test"}'
+```
+
+Output: HTTP 200
+```json
+{"data":{"id":4,"title":"Sequential Course Updated","description":"Updated for sequential test","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:06:00.000000Z"},"message":"updated"}
+```
+
+Screenshot required: Terminal 4, Step 8
+
+---
+
+### Step 9 — POST enrollment (201)
+
 ```bash
 curl -i -X POST http://localhost:8003/api/enrollments \
   -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":1}'
+  -d '{"student_id":4,"course_id":4}'
 ```
-**Expected: HTTP 201**
+
+Output: HTTP 201
 ```json
-{"data":{"id":1,"student_id":1,"course_id":1,"created_at":"...","updated_at":"..."},"message":"created"}
+{"data":{"student_id":4,"course_id":4,"updated_at":"2026-03-15T04:06:15.000000Z","created_at":"2026-03-15T04:06:15.000000Z","id":1},"message":"created"}
 ```
+
+Screenshot required: Terminal 4, Step 9
 
 ---
 
-### GET enrollment by ID
+### Step 10 — GET enrollment by ID, enriched (200)
+
 ```bash
 curl -i http://localhost:8003/api/enrollments/1
 ```
-**Expected: HTTP 200**
+
+Output: HTTP 200
 ```json
-{"data":{"id":1,"student":{"id":1,"name":"Juan dela Cruz",...},"course":{"id":1,"title":"Introduction to Programming",...},"enrolled_at":"..."},"message":"success"}
+{"data":{"id":1,"student":{"id":4,"name":"Sequential Student Updated","email":"seq.student.updated@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:30.000000Z"},"course":{"id":4,"title":"Sequential Course Updated","description":"Updated for sequential test","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:06:00.000000Z"},"enrolled_at":"2026-03-15T04:06:15.000000Z"},"message":"success"}
 ```
+
+Screenshot required: Terminal 4, Step 10
 
 ---
 
-### GET enrollments by student
+### Step 11 — GET enrollments by student ID (200)
+
 ```bash
-curl -i http://localhost:8003/api/enrollments/student/1
+curl -i http://localhost:8003/api/enrollments/student/4
 ```
-**Expected: HTTP 200**
+
+Output: HTTP 200
 ```json
-{"data":[{"id":1,"student":{...},"course":{...},"enrolled_at":"..."}],"message":"success"}
+{"data":[{"id":1,"student":{"id":4,"name":"Sequential Student Updated","email":"seq.student.updated@example.com","created_at":"2026-03-15T04:05:10.000000Z","updated_at":"2026-03-15T04:05:30.000000Z"},"course":{"id":4,"title":"Sequential Course Updated","description":"Updated for sequential test","created_at":"2026-03-15T04:05:45.000000Z","updated_at":"2026-03-15T04:06:00.000000Z"},"enrolled_at":"2026-03-15T04:06:15.000000Z"}],"message":"success"}
 ```
+
+Screenshot required: Terminal 4, Step 11
 
 ---
 
-### DELETE enrollment
-```bash
-curl -i -X DELETE http://localhost:8003/api/enrollments/1
-```
-**Expected: HTTP 200**
-```json
-{"data":null,"message":"deleted"}
-```
+### Step 12 — Validation: POST student missing name (400)
 
----
-
-### DELETE student
-```bash
-curl -i -X DELETE http://localhost:8001/api/students/4
-```
-**Expected: HTTP 200**
-```json
-{"data":null,"message":"deleted"}
-```
-
----
-
-### DELETE course
-```bash
-curl -i -X DELETE http://localhost:8002/api/courses/4
-```
-**Expected: HTTP 200**
-```json
-{"data":null,"message":"deleted"}
-```
-
----
-
-## 2. Validation Errors (400)
-
-### POST student — missing name
 ```bash
 curl -i -X POST http://localhost:8001/api/students \
   -H "Content-Type: application/json" \
-  -d '{"email":"no-name@example.com"}'
+  -d '{"email":"missing-name@example.com"}'
 ```
-**Expected: HTTP 400**
+
+Output: HTTP 400
 ```json
 {"error":"VALIDATION_ERROR","message":"The name field is required."}
 ```
 
----
-
-### POST student — missing email
-```bash
-curl -i -X POST http://localhost:8001/api/students \
-  -H "Content-Type: application/json" \
-  -d '{"name":"No Email"}'
-```
-**Expected: HTTP 400**
-```json
-{"error":"VALIDATION_ERROR","message":"The email field is required."}
-```
+Screenshot required: Terminal 4, Step 12
 
 ---
 
-### POST student — invalid email format
+### Step 13 — Validation: POST student invalid email (400)
+
 ```bash
 curl -i -X POST http://localhost:8001/api/students \
   -H "Content-Type: application/json" \
   -d '{"name":"Bad Email","email":"not-an-email"}'
 ```
-**Expected: HTTP 400**
+
+Output: HTTP 400
 ```json
 {"error":"VALIDATION_ERROR","message":"The email field must be a valid email address."}
 ```
 
----
-
-### POST enrollment — missing student_id
-```bash
-curl -i -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"course_id":1}'
-```
-**Expected: HTTP 400**
-```json
-{"error":"VALIDATION_ERROR","message":"The student id field is required."}
-```
+Screenshot required: Terminal 4, Step 13
 
 ---
 
-### POST enrollment — missing course_id
+### Step 14 — Validation: POST enrollment missing course_id (400)
+
 ```bash
 curl -i -X POST http://localhost:8003/api/enrollments \
   -H "Content-Type: application/json" \
-  -d '{"student_id":1}'
+  -d '{"student_id":4}'
 ```
-**Expected: HTTP 400**
+
+Output: HTTP 400
 ```json
 {"error":"VALIDATION_ERROR","message":"The course id field is required."}
 ```
 
+Screenshot required: Terminal 4, Step 14
+
 ---
 
-## 3. Not Found (404)
+### Step 15 — Not Found: GET nonexistent student (404)
 
-### GET student that does not exist
 ```bash
 curl -i http://localhost:8001/api/students/9999
 ```
-**Expected: HTTP 404**
+
+Output: HTTP 404
 ```json
 {"error":"NOT_FOUND","message":"Student with id 9999 does not exist"}
 ```
 
+Screenshot required: Terminal 4, Step 15
+
 ---
 
-### GET course that does not exist
+### Step 16 — Not Found: GET nonexistent course (404)
+
 ```bash
 curl -i http://localhost:8002/api/courses/9999
 ```
-**Expected: HTTP 404**
+
+Output: HTTP 404
 ```json
 {"error":"NOT_FOUND","message":"Course with id 9999 does not exist"}
 ```
 
+Screenshot required: Terminal 4, Step 16
+
 ---
 
-### GET enrollment that does not exist
+### Step 17 — Not Found: GET nonexistent enrollment (404)
+
 ```bash
 curl -i http://localhost:8003/api/enrollments/9999
 ```
-**Expected: HTTP 404**
+
+Output: HTTP 404
 ```json
 {"error":"NOT_FOUND","message":"Enrollment with id 9999 does not exist"}
 ```
 
+Screenshot required: Terminal 4, Step 17
+
 ---
 
-### PUT nonexistent student
+### Step 18 — Duplicate: POST student with existing email (409)
+
 ```bash
-curl -i -X PUT http://localhost:8001/api/students/9999 \
+curl -i -X POST http://localhost:8001/api/students \
   -H "Content-Type: application/json" \
-  -d '{"name":"Ghost"}'
+  -d '{"name":"Duplicate Student","email":"juan@example.com"}'
 ```
-**Expected: HTTP 404**
+
+Output: HTTP 409
 ```json
-{"error":"NOT_FOUND","message":"Student with id 9999 does not exist"}
+{"error":"DUPLICATE_EMAIL","message":"A student with this email already exists"}
 ```
+
+Screenshot required: Terminal 4, Step 18
 
 ---
 
-### DELETE nonexistent student
-```bash
-curl -i -X DELETE http://localhost:8001/api/students/9999
-```
-**Expected: HTTP 404**
-```json
-{"error":"NOT_FOUND","message":"Student with id 9999 does not exist"}
-```
+### Step 19 — Duplicate: POST enrollment already enrolled (409)
 
----
+> Enrollment for student_id:4, course_id:4 was created in Step 9 and still exists.
 
-### DELETE nonexistent enrollment
-```bash
-curl -i -X DELETE http://localhost:8003/api/enrollments/9999
-```
-**Expected: HTTP 404**
-```json
-{"error":"NOT_FOUND","message":"Enrollment with id 9999 does not exist"}
-```
-
----
-
-### POST enrollment — nonexistent student_id
 ```bash
 curl -i -X POST http://localhost:8003/api/enrollments \
   -H "Content-Type: application/json" \
-  -d '{"student_id":9999,"course_id":1}'
+  -d '{"student_id":4,"course_id":4}'
 ```
-**Expected: HTTP 404**
+
+Output: HTTP 409
+```json
+{"error":"DUPLICATE_ENROLLMENT","message":"This student is already enrolled in this course"}
+```
+
+Screenshot required: Terminal 4, Step 19
+
+---
+
+### Step 20 — Cross-service Not Found: nonexistent student_id in enrollment (404)
+
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":9999,"course_id":4}'
+```
+
+Output: HTTP 404
 ```json
 {"error":"STUDENT_NOT_FOUND","message":"Student with id 9999 does not exist"}
 ```
 
+Screenshot required: Terminal 4, Step 20
+
 ---
 
-### POST enrollment — nonexistent course_id
+### Step 21 — Cross-service Not Found: nonexistent course_id in enrollment (404)
+
 ```bash
 curl -i -X POST http://localhost:8003/api/enrollments \
   -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":9999}'
+  -d '{"student_id":4,"course_id":9999}'
 ```
-**Expected: HTTP 404**
+
+Output: HTTP 404
 ```json
 {"error":"COURSE_NOT_FOUND","message":"Course with id 9999 does not exist"}
 ```
 
----
-
-## 4. Duplicate (409)
-
-### POST duplicate enrollment (same student + same course)
-```bash
-# First create the enrollment (if not done already)
-curl -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":1}'
-
-# Then try to enroll the same student in the same course again
-curl -i -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":1}'
-```
-**Expected: HTTP 409**
-```json
-{"error":"DUPLICATE_ENROLLMENT","message":"This student is already enrolled in this course"}
-```
+Screenshot required: Terminal 4, Step 21
 
 ---
 
-### POST student with duplicate email
-```bash
-curl -i -X POST http://localhost:8001/api/students \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Second User","email":"juan@example.com"}'
-```
-**Expected: HTTP 409**
-```json
-{"error":"DUPLICATE_EMAIL","message":"A student with this email already exists"}
-```
+### Step 22 — Dependency Down: student-service offline (503)
 
----
-
-## 5. Dependency Down (503)
-
-### POST enrollment while student-service is offline
-
-Stop the student-service (`php artisan serve --port=8001`) then run:
+> Stop student-service in Terminal 1 (Ctrl+C), then run:
 
 ```bash
 curl -i -X POST http://localhost:8003/api/enrollments \
   -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":1}'
+  -d '{"student_id":4,"course_id":4}'
 ```
-**Expected: HTTP 503**
+
+Output: HTTP 503
 ```json
 {"error":"SERVICE_UNAVAILABLE","message":"A dependency service is not responding"}
 ```
 
+Screenshot required: Terminal 4, Step 22 (and Terminal 1 stopped)
+
+> Restart student-service in Terminal 1 before Step 23.
+
 ---
 
-### POST enrollment while course-service is offline
+### Step 23 — Timeout: student-service slow response (504)
 
-Stop the course-service (`php artisan serve --port=8002`) then run:
+> Add `sleep(10);` inside `StudentController::show()` before any other logic.
+> Restart student-service in Terminal 1, then run:
 
 ```bash
 curl -i -X POST http://localhost:8003/api/enrollments \
   -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":1}'
-```
-**Expected: HTTP 503**
-```json
-{"error":"SERVICE_UNAVAILABLE","message":"A dependency service is not responding"}
+  -d '{"student_id":4,"course_id":4}'
 ```
 
----
-
-## 6. Timeout (504)
-
-### POST enrollment while a dependency responds slowly (> 5 seconds)
-
-Introduce an artificial delay in student-service (e.g. `sleep(10)` in `StudentController::show()`), then:
-
-```bash
-curl -i -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":1}'
-```
-**Expected: HTTP 504**
+Output: HTTP 504
 ```json
 {"error":"GATEWAY_TIMEOUT","message":"Dependency service took too long to respond"}
 ```
 
----
+Screenshot required: Terminal 4, Step 23
 
-## Actual Test Log — March 11, 2026
-
-> **Pre-conditions:** All databases were freshly migrated and seeded with test data:
-> - **student-service:** 3 students (Juan dela Cruz, Maria Santos, Pedro Reyes)
-> - **course-service:** 3 courses (Introduction to Programming, Web Development, Database Systems)
-> - **enrollment-service:** 3 enrollments (student 1→course 1, student 2→course 2, student 3→course 3)
->
-> All three services started via:
-> ```
-> php artisan serve --port=8001  (student-service)
-> php artisan serve --port=8002  (course-service)
-> php artisan serve --port=8003  (enrollment-service)
-> ```
-> Results captured with `curl -s` (no headers). All services running on `localhost`.
+> Remove `sleep(10);` and restart student-service after capturing evidence.
 
 ---
 
-### 1. Student Service — port 8001
+### Step 24 — DELETE enrollment (200)
 
-#### GET all students → 200
 ```bash
-curl -s http://localhost:8001/api/students
-```
-```json
-{"data":[{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},{"id":2,"name":"Maria Santos","email":"maria@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},{"id":3,"name":"Pedro Reyes","email":"pedro@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"}],"message":"success"}
+curl -i -X DELETE http://localhost:8003/api/enrollments/1
 ```
 
-#### GET student by id → 200
-```bash
-curl -s http://localhost:8001/api/students/1
-```
-```json
-{"data":{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"message":"success"}
-```
-
-#### POST create student → 201
-```bash
-curl -s -X POST http://localhost:8001/api/students \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Ana Reyes","email":"ana@example.com"}'
-```
-```json
-{"data":{"name":"Ana Reyes","email":"ana@example.com","updated_at":"2026-03-11T13:25:50.000000Z","created_at":"2026-03-11T13:25:50.000000Z","id":4},"message":"created"}
-```
-
-#### PUT update student → 200
-```bash
-curl -s -X PUT http://localhost:8001/api/students/4 \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Ana Garcia","email":"ana.garcia@example.com"}'
-```
-```json
-{"data":{"id":4,"name":"Ana Garcia","email":"ana.garcia@example.com","created_at":"2026-03-11T13:25:50.000000Z","updated_at":"2026-03-11T13:25:50.000000Z"},"message":"updated"}
-```
-
-#### DELETE student → 200
-```bash
-curl -s -X DELETE http://localhost:8001/api/students/4
-```
+Output: HTTP 200
 ```json
 {"data":null,"message":"deleted"}
 ```
 
-#### GET student not found → 404
-```bash
-curl -s http://localhost:8001/api/students/999
-```
-```json
-{"error":"NOT_FOUND","message":"Student with id 999 does not exist"}
-```
-
-#### POST missing fields → 400
-```bash
-curl -s -X POST http://localhost:8001/api/students \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-```json
-{"error":"VALIDATION_ERROR","message":"The name field is required."}
-```
-
-#### POST duplicate email → 409
-```bash
-curl -s -X POST http://localhost:8001/api/students \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Juan Copy","email":"juan@example.com"}'
-```
-```json
-{"error":"DUPLICATE_EMAIL","message":"A student with this email already exists"}
-```
+Screenshot required: Terminal 4, Step 24
 
 ---
 
-### 2. Course Service — port 8002
+### Step 25 — DELETE student (200)
 
-#### GET all courses → 200
 ```bash
-curl -s http://localhost:8002/api/courses
-```
-```json
-{"data":[{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},{"id":2,"title":"Web Development","description":"Build modern web applications using current technologies.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},{"id":3,"title":"Database Systems","description":"Understand database design, SQL, and data management.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"}],"message":"success"}
+curl -i -X DELETE http://localhost:8001/api/students/4
 ```
 
-#### GET course by id → 200
-```bash
-curl -s http://localhost:8002/api/courses/1
-```
-```json
-{"data":{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"message":"success"}
-```
-
-#### POST create course → 201
-```bash
-curl -s -X POST http://localhost:8002/api/courses \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Data Structures","description":"Learn about data structures and algorithms"}'
-```
-```json
-{"data":{"title":"Data Structures","description":"Learn about data structures and algorithms","updated_at":"2026-03-11T13:26:47.000000Z","created_at":"2026-03-11T13:26:47.000000Z","id":4},"message":"created"}
-```
-
-#### PUT update course → 200
-```bash
-curl -s -X PUT http://localhost:8002/api/courses/4 \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Advanced Data Structures","description":"Deep dive into algorithms"}'
-```
-```json
-{"data":{"id":4,"title":"Advanced Data Structures","description":"Deep dive into algorithms","created_at":"2026-03-11T13:26:47.000000Z","updated_at":"2026-03-11T13:26:47.000000Z"},"message":"updated"}
-```
-
-#### DELETE course → 200
-```bash
-curl -s -X DELETE http://localhost:8002/api/courses/4
-```
+Output: HTTP 200
 ```json
 {"data":null,"message":"deleted"}
 ```
 
-#### GET course not found → 404
-```bash
-curl -s http://localhost:8002/api/courses/999
-```
-```json
-{"error":"NOT_FOUND","message":"Course with id 999 does not exist"}
-```
-
-#### POST missing title → 400
-```bash
-curl -s -X POST http://localhost:8002/api/courses \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-```json
-{"error":"VALIDATION_ERROR","message":"The title field is required."}
-```
+Screenshot required: Terminal 4, Step 25
 
 ---
 
-### 3. Enrollment Service — port 8003
+### Step 26 — DELETE course (200)
 
-#### GET all enrollments (enriched with student + course) → 200
 ```bash
-curl -s http://localhost:8003/api/enrollments
-```
-```json
-{"data":[{"id":1,"student":{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"},{"id":2,"student":{"id":2,"name":"Maria Santos","email":"maria@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":2,"title":"Web Development","description":"Build modern web applications using current technologies.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"},{"id":3,"student":{"id":3,"name":"Pedro Reyes","email":"pedro@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":3,"title":"Database Systems","description":"Understand database design, SQL, and data management.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"}],"message":"success"}
-```
-> Note: All enrollments return enriched data — student and course objects are fetched from their respective microservices via HTTP calls, demonstrating cross-service communication.
-
-#### GET enrollment by id (enriched) → 200
-```bash
-curl -s http://localhost:8003/api/enrollments/1
-```
-```json
-{"data":{"id":1,"student":{"id":1,"name":"Juan dela Cruz","email":"juan@example.com","created_at":"2026-03-11T13:25:05.000000Z","updated_at":"2026-03-11T13:25:05.000000Z"},"course":{"id":1,"title":"Introduction to Programming","description":"Learn the basics of programming concepts and logic.","created_at":"2026-03-11T13:25:06.000000Z","updated_at":"2026-03-11T13:25:06.000000Z"},"enrolled_at":"2026-03-11T13:25:08.000000Z"},"message":"success"}
+curl -i -X DELETE http://localhost:8002/api/courses/4
 ```
 
-#### POST create enrollment → 201
-```bash
-curl -s -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":2}'
-```
-```json
-{"data":{"student_id":1,"course_id":2,"updated_at":"2026-03-11T13:27:17.000000Z","created_at":"2026-03-11T13:27:17.000000Z","id":4},"message":"created"}
-```
-
-#### DELETE enrollment → 200
-```bash
-curl -s -X DELETE http://localhost:8003/api/enrollments/4
-```
+Output: HTTP 200
 ```json
 {"data":null,"message":"deleted"}
 ```
 
-#### GET enrollment not found → 404
-```bash
-curl -s http://localhost:8003/api/enrollments/999
-```
-```json
-{"error":"NOT_FOUND","message":"Enrollment with id 999 does not exist"}
-```
-
-#### POST missing fields → 400
-```bash
-curl -s -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-```json
-{"error":"VALIDATION_ERROR","message":"The student id field is required."}
-```
-
-#### POST duplicate enrollment → 409
-```bash
-curl -s -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":1}'
-```
-```json
-{"error":"DUPLICATE_ENROLLMENT","message":"This student is already enrolled in this course"}
-```
-
-#### POST nonexistent student_id (cross-service 404) → 404
-```bash
-curl -s -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"student_id":999,"course_id":1}'
-```
-```json
-{"error":"STUDENT_NOT_FOUND","message":"Student with id 999 does not exist"}
-```
-
-#### POST nonexistent course_id (cross-service 404) → 404
-```bash
-curl -s -X POST http://localhost:8003/api/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{"student_id":1,"course_id":999}'
-```
-```json
-{"error":"COURSE_NOT_FOUND","message":"Course with id 999 does not exist"}
-```
+Screenshot required: Terminal 4, Step 26
 
 ---
 
-### 4. Service Down (503) — Manual Test
+### Step 27 — Verify cleanup: all deleted resources return 404
 
-> Stop student-service, then POST enrollment:
-> ```bash
-> curl -s -X POST http://localhost:8003/api/enrollments \
->   -H "Content-Type: application/json" \
->   -d '{"student_id":1,"course_id":1}'
-> ```
-> **Expected result:**
-> ```json
-> {"error":"SERVICE_UNAVAILABLE","message":"A dependency service is not responding"}
-> ```
-> *HTTP 503 — service unavailable handler works (verified via code inspection of `EnrollmentController::serviceError()`)*
+```bash
+curl -i http://localhost:8001/api/students/4
+```
+
+Output: HTTP 404
+```json
+{"error":"NOT_FOUND","message":"Student with id 4 does not exist"}
+```
+
+```bash
+curl -i http://localhost:8002/api/courses/4
+```
+
+Output: HTTP 404
+```json
+{"error":"NOT_FOUND","message":"Course with id 4 does not exist"}
+```
+
+```bash
+curl -i http://localhost:8003/api/enrollments/1
+```
+
+Output: HTTP 404
+```json
+{"error":"NOT_FOUND","message":"Enrollment with id 1 does not exist"}
+```
+
+Screenshot required: Terminal 4, Step 27
 
 ---
 
-### Summary
+## Summary
 
-| Service            | Port | CRUD | 400 | 404 | 409 | 503/504     |
-|--------------------|------|------|-----|-----|-----|-------------|
-| student-service    | 8001 | ✅   | ✅  | ✅  | ✅  | N/A         |
-| course-service     | 8002 | ✅   | ✅  | ✅  | N/A | N/A         |
-| enrollment-service | 8003 | ✅   | ✅  | ✅  | ✅  | ✅ (impl)   |
-
-All microservices running and responding correctly with freshly seeded data as of **March 11, 2026**.
+| Step | Service | Method | Endpoint | HTTP |
+|------|---------|--------|----------|------|
+| 1 | student | GET | /api/students | 200 |
+| 2 | course | GET | /api/courses | 200 |
+| 3 | student | POST | /api/students | 201 |
+| 4 | student | GET | /api/students/4 | 200 |
+| 5 | student | PUT | /api/students/4 | 200 |
+| 6 | course | POST | /api/courses | 201 |
+| 7 | course | GET | /api/courses/4 | 200 |
+| 8 | course | PUT | /api/courses/4 | 200 |
+| 9 | enrollment | POST | /api/enrollments | 201 |
+| 10 | enrollment | GET | /api/enrollments/1 | 200 |
+| 11 | enrollment | GET | /api/enrollments/student/4 | 200 |
+| 12 | student | POST | /api/students | 400 |
+| 13 | student | POST | /api/students | 400 |
+| 14 | enrollment | POST | /api/enrollments | 400 |
+| 15 | student | GET | /api/students/9999 | 404 |
+| 16 | course | GET | /api/courses/9999 | 404 |
+| 17 | enrollment | GET | /api/enrollments/9999 | 404 |
+| 18 | student | POST | /api/students | 409 |
+| 19 | enrollment | POST | /api/enrollments | 409 |
+| 20 | enrollment | POST | /api/enrollments | 404 |
+| 21 | enrollment | POST | /api/enrollments | 404 |
+| 22 | enrollment | POST | /api/enrollments | 503 |
+| 23 | enrollment | POST | /api/enrollments | 504 |
+| 24 | enrollment | DELETE | /api/enrollments/1 | 200 |
+| 25 | student | DELETE | /api/students/4 | 200 |
+| 26 | course | DELETE | /api/courses/4 | 200 |
+| 27 | all | GET | (cleanup verification) | 404 |

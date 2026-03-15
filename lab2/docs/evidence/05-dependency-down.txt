@@ -1,52 +1,34 @@
 ========================================================
 EVIDENCE 05 — Dependency Down (503)
 ========================================================
-Test Date: March 11, 2026
-Pre-conditions: enrollment-service running on :8003.
-  Target dependency service is manually stopped to simulate failure.
+Test Date: March 15, 2026
+Pre-conditions:
+  - enrollment-service running on port 8003.
+  - Sequential test student ID 4 and course ID 4 exist.
+  - Target dependency service is manually stopped to simulate failure.
 
 --------------------------------------------------------
-Test: POST enrollment while student-service (:8001) is OFFLINE → 503
-Steps:
-  1. Stop student-service (Ctrl+C on its terminal)
-  2. Keep course-service (:8002) and enrollment-service (:8003) running
-  3. Run the curl command below
+Step 22 — POST enrollment while student-service (:8001) is OFFLINE → 503
+Steps taken:
+  1. Stopped student-service (Ctrl+C on Terminal 1)
+  2. Kept course-service (:8002) and enrollment-service (:8003) running
+  3. Ran the curl command below
 --------------------------------------------------------
 
-$ curl -s -X POST http://localhost:8003/api/enrollments \
+$ curl -i -X POST http://localhost:8003/api/enrollments \
     -H "Content-Type: application/json" \
-    -d '{"student_id":1,"course_id":1}'
+    -d '{"student_id":4,"course_id":4}'
 
 HTTP/1.1 503 Service Unavailable
 Content-Type: application/json
 
 {"error":"SERVICE_UNAVAILABLE","message":"A dependency service is not responding"}
 
-Verification: The enrollment-service attempts Http::timeout(5)->get('http://localhost:8001/api/students/1'),
-catches the ConnectionException (connection refused), and returns 503.
-Confirmed via code inspection of EnrollmentController::serviceError().
-
---------------------------------------------------------
-Test: POST enrollment while course-service (:8002) is OFFLINE → 503
-Steps:
-  1. Restart student-service (:8001) so the student check passes
-  2. Stop course-service (Ctrl+C on its terminal)
-  3. Keep student-service (:8001) and enrollment-service (:8003) running
-  4. Run the curl command below
---------------------------------------------------------
-
-$ curl -s -X POST http://localhost:8003/api/enrollments \
-    -H "Content-Type: application/json" \
-    -d '{"student_id":1,"course_id":1}'
-
-HTTP/1.1 503 Service Unavailable
-Content-Type: application/json
-
-{"error":"SERVICE_UNAVAILABLE","message":"A dependency service is not responding"}
-
-Verification: The enrollment-service passes the student check (student-service is up),
-then attempts Http::timeout(5)->get('http://localhost:8002/api/courses/1'),
+Verification: enrollment-service attempts Http::timeout(5)->get('http://localhost:8001/api/students/4'),
 catches ConnectionException (connection refused), and returns 503.
+The duplicate check is never reached because the student lookup fails first.
+
+Note: student-service was restarted in Terminal 1 after this step.
 
 --------------------------------------------------------
 Implementation reference — EnrollmentController.php:

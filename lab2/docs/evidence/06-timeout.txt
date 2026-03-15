@@ -1,36 +1,37 @@
 ========================================================
 EVIDENCE 06 — Dependency Timeout (504)
 ========================================================
-Test Date: March 11, 2026
-Pre-conditions: All three services running.
-  A temporary sleep(10) is added to the target service's controller
-  to simulate a slow response exceeding the 5-second timeout budget.
+Test Date: March 15, 2026
+Pre-conditions:
+  - All three services running.
+  - Sequential test student ID 4 and course ID 4 exist.
+  - sleep(10) temporarily added to StudentController::show() to simulate
+    a slow dependency exceeding the 5-second Http client timeout.
 
 --------------------------------------------------------
-Test: POST enrollment while student-service responds slowly (> 5 seconds) → 504
-Steps:
-  1. In student-service/app/Http/Controllers/StudentController.php,
-     add sleep(10) inside show() before the find() call.
-  2. Restart student-service on :8001.
-  3. Keep course-service (:8002) and enrollment-service (:8003) running.
-  4. Run the curl command below.
-  5. Remove sleep(10) after testing and restart.
+Step 23 — POST enrollment while student-service responds slowly (>5s) → 504
+Steps taken:
+  1. Added sleep(10); inside StudentController::show() before any processing
+  2. Restarted student-service on port 8001
+  3. Kept course-service (:8002) and enrollment-service (:8003) running
+  4. Ran the curl command below
+  5. Removed sleep(10); and restarted student-service after capturing evidence
 --------------------------------------------------------
 
-$ curl -s -X POST http://localhost:8003/api/enrollments \
+$ curl -i -X POST http://localhost:8003/api/enrollments \
     -H "Content-Type: application/json" \
-    -d '{"student_id":1,"course_id":1}'
+    -d '{"student_id":4,"course_id":4}'
 
 HTTP/1.1 504 Gateway Timeout
 Content-Type: application/json
 
 {"error":"GATEWAY_TIMEOUT","message":"Dependency service took too long to respond"}
 
-Verification: The enrollment-service calls Http::timeout(5)->get('http://localhost:8001/api/students/1').
-The student-service sleeps for 10 seconds, exceeding the 5-second timeout.
-The Http client throws a ConnectionException with "timed out" in the message.
-The catch block in EnrollmentController::serviceError() detects the timeout
-via str_contains($e->getMessage(), 'timed out') and returns 504.
+Verification: enrollment-service calls Http::timeout(5)->get('http://localhost:8001/api/students/4').
+The student-service sleeps for 10 seconds, exceeding the 5-second client timeout.
+Http throws ConnectionException with "timed out" in the message.
+EnrollmentController::serviceError() detects this via str_contains($e->getMessage(), 'timed out')
+and returns HTTP 504 with GATEWAY_TIMEOUT.
 
 --------------------------------------------------------
 Implementation reference — EnrollmentController.php:
