@@ -54,6 +54,7 @@ class StudentController extends Controller
 
     public function show($id)
     {
+         //sleep(10); // ← ADD HERE — remove after screenshot
         $student = $this->studentRepository->find($id);
 
         if (!$student) {

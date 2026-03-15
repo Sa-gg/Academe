@@ -32,3 +32,4 @@ _generate_all_docx.py
 # ── OS / Editor ────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+.vscode

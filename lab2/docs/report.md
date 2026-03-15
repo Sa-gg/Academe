@@ -1,189 +1,339 @@
-# Lab 2 — Microservices Edge Case Testing Report
+# Lab 2 - Microservices Edge Case Testing Report
 
-> **Subject:** System Architecture and Integration 2
-> **Section:** BIST 3B
-> **Members:** Sagum, Patrick Ruiz · Henson, Princess Terana Caram Rasonable · Gargarita, Trisha Faith Casiano · Mogat, Ela Mae Trojillo · Tibo-oc, Paul Felippe Gelle
+> Subject: System Architecture and Integration 2  
+> Section: BIST 3B  
+> Members: Sagum, Patrick Ruiz; Henson, Princess Terana Caram Rasonable; Gargarita, Trisha Faith Casiano; Mogat, Ela Mae Trojillo; Tibo-oc, Paul Felippe Gelle
 
 ---
 
 ## 1. Overview
 
-This report documents the edge cases implemented and tested across the three microservices that make up the Academe system: `student-service` (port 8001), `course-service` (port 8002), and `enrollment-service` (port 8003).
+This document reports the full Lab 2 microservices validation for:
+- student-service (port 8001)
+- course-service (port 8002)
+- enrollment-service (port 8003)
 
-Edge cases in distributed systems are critical because failures do not propagate as cleanly as they do in a monolithic application. In a monolith, a missing record throws a `ModelNotFoundException` that is caught by the global exception handler and returns a uniform 404. In a microservices architecture, the same missing record might be on a different server that could be down, slow, or returning malformed data — each scenario requiring different error codes and consumer handling strategies.
-
-The goal of this testing phase was to exercise every failure mode defined in the API contract and confirm that each service returns the correct HTTP status code and JSON error body.
-
----
-
-## 2. Edge Cases Implemented
-
-### 400 — Validation Error
-
-**What triggers it:**
-A `POST` or `PUT` request is made with a missing required field or an invalid field value (e.g., a non-email string in the `email` field).
-
-**Which service handles it:**
-`student-service` (POST/PUT /api/students), `course-service` (POST/PUT /api/courses), and `enrollment-service` (POST /api/enrollments).
-
-**HTTP status code returned:** `400 Bad Request`
-
-**JSON error format:**
-```json
-{
-  "error": "VALIDATION_ERROR",
-  "message": "The name field is required."
-}
-```
-
-**Implementation:** `Validator::make()` is called in the controller. If `$validator->fails()`, the first error message is returned with a 400 status.
+The testing objective is complete endpoint and edge-case verification using sequential curl commands that preserve valid data flow from one step to the next.
 
 ---
 
-### 404 — Resource Not Found
+## 2. Test Coverage Matrix
 
-**What triggers it:**
-A `GET`, `PUT`, or `DELETE` request references an ID that does not exist in the target service's database.
-
-**Which service handles it:**
-All three services for their own resources. Enrollment service also returns `STUDENT_NOT_FOUND` (404) and `COURSE_NOT_FOUND` (404) when the referenced entities don't exist in their respective services.
-
-**HTTP status code returned:** `404 Not Found`
-
-**JSON error formats:**
-```json
-{ "error": "NOT_FOUND",          "message": "Student with id 9999 does not exist" }
-{ "error": "STUDENT_NOT_FOUND",  "message": "Student with id 9999 does not exist" }
-{ "error": "COURSE_NOT_FOUND",   "message": "Course with id 9999 does not exist" }
-```
+| Category | Student | Course | Enrollment |
+|---|---|---|---|
+| GET | Yes | Yes | Yes |
+| POST | Yes | Yes | Yes |
+| PUT | Yes | Yes | N/A |
+| DELETE | Yes | Yes | Yes |
+| 400 Validation Error | Yes | Yes | Yes |
+| 404 Not Found | Yes | Yes | Yes |
+| 409 Duplicate | Yes | N/A | Yes |
+| 503 Dependency Down | N/A | N/A | Yes |
+| 504 Timeout | N/A | N/A | Yes |
 
 ---
 
-### 409 — Duplicate Resource
+## 3. Deterministic Pre-Conditions (Required)
 
-**What triggers it:**
-- `POST /api/students` with an email that already exists → `DUPLICATE_EMAIL`
-- `POST /api/enrollments` with a student_id + course_id combination that already exists → `DUPLICATE_ENROLLMENT`
-
-**HTTP status code returned:** `409 Conflict`
-
-**JSON error formats:**
-```json
-{ "error": "DUPLICATE_EMAIL",      "message": "A student with this email already exists" }
-{ "error": "DUPLICATE_ENROLLMENT", "message": "This student is already enrolled in this course" }
-```
-
----
-
-### 503 — Dependency Service Unavailable
-
-**What triggers it:**
-The `enrollment-service` attempts to call `student-service` or `course-service` but the target server is not running or refuses the connection.
-
-**HTTP status code returned:** `503 Service Unavailable`
-
-**JSON error format:**
-```json
-{
-  "error": "SERVICE_UNAVAILABLE",
-  "message": "A dependency service is not responding"
-}
-```
-
-**Implementation:** All `Http::timeout(5)->get(...)` calls in the enrollment controller are wrapped in `try/catch (\Illuminate\Http\Client\ConnectionException)`. The catch block inspects the exception message to distinguish between a connection refusal (503) and a timeout (504).
-
----
-
-### 504 — Dependency Service Timeout
-
-**What triggers it:**
-The `enrollment-service` makes an HTTP call to `student-service` or `course-service`, but the target takes longer than 5 seconds to respond.
-
-**HTTP status code returned:** `504 Gateway Timeout`
-
-**JSON error format:**
-```json
-{
-  "error": "GATEWAY_TIMEOUT",
-  "message": "Dependency service took too long to respond"
-}
-```
-
-**Implementation:** The same `ConnectionException` catch block distinguishes timeouts by checking `str_contains($e->getMessage(), 'timed out')`. When true, HTTP 504 and `GATEWAY_TIMEOUT` are returned instead of 503.
-
----
-
-## 3. Service Communication
-
-The `enrollment-service` is the only service that calls other services. It does not rely on shared database access or a message queue — all cross-service data retrieval is done via synchronous HTTP.
-
-**On write (POST /api/enrollments):**
-The controller makes two sequential HTTP GET calls before writing:
-1. `GET http://localhost:8001/api/students/{student_id}` — validates the student exists
-2. `GET http://localhost:8002/api/courses/{course_id}` — validates the course exists
-
-Both are wrapped in `try/catch (\Illuminate\Http\Client\ConnectionException)` to handle:
-- Connection refused → 503 `SERVICE_UNAVAILABLE`
-- Timeout after 5 seconds → 504 `GATEWAY_TIMEOUT`
-
-**On read (GET /api/enrollments/{id} and GET /api/enrollments):**
-The controller fetches the enrollment from its own database first, then enriches the response by calling student-service and course-service. If a dependency is unreachable during a read, the same 503/504 response is returned.
-
-**When student-service or course-service is unreachable:**
-No enrollment is persisted. The enrollment-service fails fast and returns the appropriate error. There is no retry or circuit-breaker logic in this implementation.
-
----
-
-## 4. Reflection
-
-**The hardest edge case to implement: 503 vs 504 distinction**
-
-Both connection-refused and timeout scenarios throw a `\Illuminate\Http\Client\ConnectionException`. Distinguishing between them requires inspecting the exception message string, which is fragile. A production system would use a dedicated circuit-breaker library and expose a `/health` endpoint on each service.
-
-**Why distributed error handling is harder than monolithic:**
-
-In the monolith, a failed database query throws an exception that bubbles up to a single handler. Every possible error path is in-process and covered by PHP's exception hierarchy. In a microservices setup, a single user request to `POST /api/enrollments` can fail at four different points: validation (local), student check (remote), course check (remote), or the final write (local). Each remote call has its own failure mode that must be handled distinctly.
-
----
-
-## 5. How to Run
-
-Open three terminal windows from the `lab2/services/` directory:
+Before capturing screenshots, reset the databases in this exact order:
 
 ```bash
-# Terminal 1 — Student Service
+cd lab2/services/student-service
+php artisan migrate:fresh --seed
+
+cd ../course-service
+php artisan migrate:fresh --seed
+
+cd ../enrollment-service
+php artisan migrate:fresh
+```
+
+Expected starting state:
+- students: seeded IDs 1..3
+- courses: seeded IDs 1..3
+- enrollments: empty
+
+This reset guarantees that sequential steps produce expected IDs:
+- new student ID: 4
+- new course ID: 4
+- new enrollment ID: 1
+
+---
+
+## 4. Service Startup
+
+Terminal 1:
+```bash
 cd lab2/services/student-service
 php artisan serve --port=8001
+```
+Screenshot required: Terminal 1 startup banner
 
-# Terminal 2 — Course Service
+Terminal 2:
+```bash
 cd lab2/services/course-service
 php artisan serve --port=8002
+```
+Screenshot required: Terminal 2 startup banner
 
-# Terminal 3 — Enrollment Service
+Terminal 3:
+```bash
 cd lab2/services/enrollment-service
 php artisan serve --port=8003
 ```
+Screenshot required: Terminal 3 startup banner
 
-All databases should be freshly migrated and seeded before testing:
-```bash
-php artisan migrate --seed
-```
-
-Run tests from [tests/curl-tests.md](../tests/curl-tests.md).
-
-**Test date:** March 11, 2026 — all services running with seeded data (3 students, 3 courses, 3 enrollments).
+Use Terminal 4 for all curl commands below.
 
 ---
 
-## 6. Evidence
+## 5. Sequential curl Procedure With Required Screenshots
 
-Test output evidence is captured in `docs/evidence/`:
+### Step 1 - GET students (200)
+```bash
+curl -i http://localhost:8001/api/students
+```
+Expected: 200 success with 3 seeded rows
+Screenshot required: Terminal 4 Step 1
 
-| File | Edge Case | HTTP Code |
-|------|-----------|-----------|
-| [01-happy-path.txt](evidence/01-happy-path.txt) | Successful CRUD operations | 200, 201 |
-| [02-validation-error.txt](evidence/02-validation-error.txt) | Missing/invalid fields | 400 |
-| [03-not-found.txt](evidence/03-not-found.txt) | Nonexistent resources | 404 |
-| [04-duplicate.txt](evidence/04-duplicate.txt) | Duplicate email/enrollment | 409 |
-| [05-dependency-down.txt](evidence/05-dependency-down.txt) | Service offline | 503 |
-| [06-timeout.txt](evidence/06-timeout.txt) | Service timeout (>5s) | 504 |
+### Step 2 - GET courses (200)
+```bash
+curl -i http://localhost:8002/api/courses
+```
+Expected: 200 success with 3 seeded rows
+Screenshot required: Terminal 4 Step 2
+
+### Step 3 - POST student (201)
+```bash
+curl -i -X POST http://localhost:8001/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Sequential Student","email":"seq.student@example.com"}'
+```
+Expected: 201 created (student ID 4)
+Screenshot required: Terminal 4 Step 3
+
+### Step 4 - GET created student (200)
+```bash
+curl -i http://localhost:8001/api/students/4
+```
+Expected: 200 success
+Screenshot required: Terminal 4 Step 4
+
+### Step 5 - PUT student update (200)
+```bash
+curl -i -X PUT http://localhost:8001/api/students/4 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Sequential Student Updated","email":"seq.student.updated@example.com"}'
+```
+Expected: 200 updated
+Screenshot required: Terminal 4 Step 5
+
+### Step 6 - POST course (201)
+```bash
+curl -i -X POST http://localhost:8002/api/courses \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Sequential Course","description":"Course used for ordered testing"}'
+```
+Expected: 201 created (course ID 4)
+Screenshot required: Terminal 4 Step 6
+
+### Step 7 - GET created course (200)
+```bash
+curl -i http://localhost:8002/api/courses/4
+```
+Expected: 200 success
+Screenshot required: Terminal 4 Step 7
+
+### Step 8 - PUT course update (200)
+```bash
+curl -i -X PUT http://localhost:8002/api/courses/4 \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Sequential Course Updated","description":"Updated for sequential test"}'
+```
+Expected: 200 updated
+Screenshot required: Terminal 4 Step 8
+
+### Step 9 - POST enrollment (201)
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":4,"course_id":4}'
+```
+Expected: 201 created (enrollment ID 1)
+Screenshot required: Terminal 4 Step 9
+
+### Step 10 - GET enrollment by ID (200)
+```bash
+curl -i http://localhost:8003/api/enrollments/1
+```
+Expected: 200 success with enriched student and course payload
+Screenshot required: Terminal 4 Step 10
+
+### Step 11 - GET enrollments by student (200)
+```bash
+curl -i http://localhost:8003/api/enrollments/student/4
+```
+Expected: 200 success
+Screenshot required: Terminal 4 Step 11
+
+### Step 12 - Validation error student missing name (400)
+```bash
+curl -i -X POST http://localhost:8001/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"email":"missing-name@example.com"}'
+```
+Expected: 400 VALIDATION_ERROR
+Screenshot required: Terminal 4 Step 12
+
+### Step 13 - Validation error student invalid email (400)
+```bash
+curl -i -X POST http://localhost:8001/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bad Email","email":"not-an-email"}'
+```
+Expected: 400 VALIDATION_ERROR
+Screenshot required: Terminal 4 Step 13
+
+### Step 14 - Validation error enrollment missing course_id (400)
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":4}'
+```
+Expected: 400 VALIDATION_ERROR
+Screenshot required: Terminal 4 Step 14
+
+### Step 15 - Not found student (404)
+```bash
+curl -i http://localhost:8001/api/students/9999
+```
+Expected: 404 NOT_FOUND
+Screenshot required: Terminal 4 Step 15
+
+### Step 16 - Not found course (404)
+```bash
+curl -i http://localhost:8002/api/courses/9999
+```
+Expected: 404 NOT_FOUND
+Screenshot required: Terminal 4 Step 16
+
+### Step 17 - Not found enrollment (404)
+```bash
+curl -i http://localhost:8003/api/enrollments/9999
+```
+Expected: 404 NOT_FOUND
+Screenshot required: Terminal 4 Step 17
+
+### Step 18 - Duplicate student email (409)
+```bash
+curl -i -X POST http://localhost:8001/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Duplicate Student","email":"juan@example.com"}'
+```
+Expected: 409 DUPLICATE_EMAIL
+Screenshot required: Terminal 4 Step 18
+
+### Step 19 - Duplicate enrollment pair (409)
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":4,"course_id":4}'
+```
+Expected: 409 DUPLICATE_ENROLLMENT
+Screenshot required: Terminal 4 Step 19
+
+### Step 20 - Cross-service student not found (404)
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":9999,"course_id":4}'
+```
+Expected: 404 STUDENT_NOT_FOUND
+Screenshot required: Terminal 4 Step 20
+
+### Step 21 - Cross-service course not found (404)
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":4,"course_id":9999}'
+```
+Expected: 404 COURSE_NOT_FOUND
+Screenshot required: Terminal 4 Step 21
+
+### Step 22 - Dependency down (503)
+Stop student-service in Terminal 1, then run:
+
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":4,"course_id":4}'
+```
+Expected: 503 SERVICE_UNAVAILABLE
+Screenshot required: Terminal 4 Step 22 and Terminal 1 stopped state
+
+Restart student-service before next step.
+
+### Step 23 - Timeout (504)
+Temporarily add `sleep(10);` in student-service `show()` before returning response, then run:
+
+```bash
+curl -i -X POST http://localhost:8003/api/enrollments \
+  -H "Content-Type: application/json" \
+  -d '{"student_id":4,"course_id":4}'
+```
+Expected: 504 GATEWAY_TIMEOUT
+Screenshot required: Terminal 4 Step 23
+
+Remove `sleep(10);` after this test.
+
+### Step 24 - DELETE enrollment (200)
+```bash
+curl -i -X DELETE http://localhost:8003/api/enrollments/1
+```
+Expected: 200 deleted
+Screenshot required: Terminal 4 Step 24
+
+### Step 25 - DELETE student (200)
+```bash
+curl -i -X DELETE http://localhost:8001/api/students/4
+```
+Expected: 200 deleted
+Screenshot required: Terminal 4 Step 25
+
+### Step 26 - DELETE course (200)
+```bash
+curl -i -X DELETE http://localhost:8002/api/courses/4
+```
+Expected: 200 deleted
+Screenshot required: Terminal 4 Step 26
+
+### Step 27 - Verify deleted resources now return 404
+```bash
+curl -i http://localhost:8001/api/students/4
+curl -i http://localhost:8002/api/courses/4
+curl -i http://localhost:8003/api/enrollments/1
+```
+Expected: 404 for all three checks
+Screenshot required: Terminal 4 Step 27
+
+---
+
+## 6. Why This Sequence Is Safe
+
+- New temporary entities (student 4 and course 4) are created early and used for mutation tests.
+- Destructive deletes are intentionally moved to final cleanup steps.
+- Edge-case tests that should not mutate data (400/404/409/503/504) are executed before cleanup.
+- Reset commands guarantee reproducible IDs and expected outputs for documentation.
+
+---
+
+## 7. Evidence Checklist (for DOCX screenshots)
+
+Insert all screenshots in this order:
+
+1. Service startup x3
+2. Step 1 to Step 27 terminal outputs
+3. Terminal evidence for stopped dependency in Step 22
+4. Optional code snippet screenshot showing temporary `sleep(10);` for Step 23
+
+Reference command source: `lab2/tests/curl-tests.md`.
