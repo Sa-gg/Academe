@@ -99,7 +99,7 @@ bash scripts/lab2/serve.sh course
 bash scripts/lab2/serve.sh enrollment
 ```
 
-## Setup & Run
+## Manual Setup (Full Reference)
 
 > For quick professor testing, use **Quick Start** above.
 
@@ -108,7 +108,7 @@ Terminal 1:
 cd lab2/services/student-service
 composer install
 touch database/students.sqlite
-php artisan migrate --seed
+php artisan migrate:fresh --seed
 php artisan serve --port=8001
 ```
 
@@ -117,7 +117,7 @@ Terminal 2:
 cd lab2/services/course-service
 composer install
 touch database/courses.sqlite
-php artisan migrate --seed
+php artisan migrate:fresh --seed
 php artisan serve --port=8002
 ```
 
@@ -126,7 +126,7 @@ Terminal 3:
 cd lab2/services/enrollment-service
 composer install
 touch database/enrollments.sqlite
-php artisan migrate
+php artisan migrate:fresh
 php artisan serve --port=8003
 ```
 
@@ -134,13 +134,11 @@ All three must be running before executing tests.
 
 ## Running Edge Case Tests
 
-Terminal 4:
-```bash
-cd lab2/tests
-bash run-tests.sh
-```
+With all 3 services running, open a new terminal and follow the curl commands in:
 
-Evidence output saved to: lab2/docs/evidence/
+[`lab2/tests/curl-tests.md`](tests/curl-tests.md)
+
+Evidence output is pre-saved in: `lab2/docs/evidence/`
 
 ## Deliverables
 
