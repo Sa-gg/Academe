@@ -19,6 +19,30 @@
 | Business Logic | server/controllers/orderController.js | Validates rules, processes orders |
 | Data | server/data/products.json | Stores products and stock |
 
+## Terminal Requirement
+
+Use **Git Bash** for all commands in this README.
+
+## Stack
+
+| Layer | Technology |
+|------|------------|
+| API | Node.js + Express |
+| Data | JSON file storage |
+| Testing | curl |
+
+## Seeded Data
+
+- 5 products are restored on every setup run from `server/data/products.seed.json`
+- initial stock: Laptop 10, Smartphone 25, Tablet 15, Monitor 8, Keyboard 50
+
+## Prerequisites
+
+- Git Bash
+- Node.js 18+
+- npm
+- curl
+
 ## Setup
 
 Quick start from repository root:
@@ -29,6 +53,26 @@ bash scripts/lab3/serve.sh
 ```
 
 `setup.sh` resets `server/data/products.json` from `server/data/products.seed.json` for a clean test baseline every run.
+
+What `setup.sh` does:
+- installs Node dependencies if needed
+- copies `.env` if missing
+- resets `products.json` to the seeded baseline
+
+Why first run can take time:
+- npm must download packages on the first run
+
+Reruns are faster because `node_modules/` is reused.
+
+## One-Terminal Fallback (npm)
+
+From repository root in **Git Bash**:
+
+```bash
+npm install
+npm run setup:lab3
+npm run serve:lab3
+```
 
 Manual setup (equivalent):
 
@@ -76,4 +120,4 @@ Start the API from `server/`, then run all 13 curl commands from `tests/curl-tes
 
 ## Requirements
 
-Node.js 18+, npm, curl
+See **Prerequisites** above.

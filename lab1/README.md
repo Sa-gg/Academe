@@ -33,6 +33,34 @@
 
 ---
 
+## Terminal Requirement
+
+Use **Git Bash** for all commands in this README.
+
+## Stack
+
+| Layer | Technology |
+|------|------------|
+| Frontend | Laravel Blade + Vite |
+| Backend | Laravel / PHP |
+| Database | SQLite |
+| API mode | Monolith + Microservices |
+
+## Seeded Data
+
+- Students: 3 seeded records
+- Courses: 3 seeded records
+- Enrollments: seeded in Academe, empty/fresh in standalone enrollment service unless created by tests
+
+## Prerequisites
+
+- Git Bash
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- npm
+- curl
+
 ## Quick Start (Recommended)
 
 From repository root:
@@ -42,6 +70,22 @@ bash scripts/lab1/setup.sh
 ```
 
 This performs a **fresh setup** (installs dependencies and resets databases using `migrate:fresh`).
+
+What `setup.sh` does:
+- installs PHP dependencies for all services and `academe/`
+- installs Node dependencies for `academe/` if needed
+- builds frontend assets if needed
+- copies `.env` files if missing
+- regenerates app keys
+- recreates SQLite databases with fresh migrations and seed data
+
+Why first run can take time:
+- Composer downloads Laravel dependencies
+- npm downloads frontend packages
+- Vite builds frontend assets
+- each database is recreated from scratch
+
+Reruns are faster because existing `vendor/`, `node_modules/`, and built assets are reused when possible.
 
 Then open 4 terminals and run:
 
@@ -53,6 +97,18 @@ bash scripts/lab1/serve-academe.sh
 ```
 
 Open: http://localhost:8000
+
+## One-Terminal Fallback (npm)
+
+From repository root in **Git Bash**:
+
+```bash
+npm install
+npm run setup:lab1
+npm run serve:lab1
+```
+
+This uses `concurrently` to run all required services in one terminal.
 
 ---
 
@@ -208,8 +264,4 @@ APP_BACKEND=monolithic     →  repositories call Eloquent models directly
 
 ## Requirements
 
-- PHP 8.2+
-- Composer
-- Node.js 18+
-- NPM
-- curl
+See **Prerequisites** above.

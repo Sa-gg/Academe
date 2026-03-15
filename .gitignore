@@ -22,6 +22,7 @@ bootstrap/cache/*.php
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+lab1/academe/package-lock.json
 
 # ── Python ─────────────────────────────────────────────────────
 .venv/
@@ -33,3 +34,7 @@ _generate_all_docx.py
 .DS_Store
 Thumbs.db
 .vscode
+scripts/office/
+convert*.py
+*convert*pdf*.py
+*docx*pdf*.py

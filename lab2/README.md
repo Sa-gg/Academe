@@ -31,6 +31,31 @@
 | course-service | 8002 | database/courses.sqlite |
 | enrollment-service | 8003 | database/enrollments.sqlite |
 
+## Terminal Requirement
+
+Use **Git Bash** for all commands in this README.
+
+## Stack
+
+| Layer | Technology |
+|------|------------|
+| Services | Laravel / PHP |
+| Database | SQLite |
+| Testing | curl |
+
+## Seeded Data
+
+- Student service: 3 seeded students
+- Course service: 3 seeded courses
+- Enrollment service: fresh empty database before tests
+
+## Prerequisites
+
+- Git Bash
+- PHP 8.2+
+- Composer
+- curl
+
 ## Quick Start (Recommended)
 
 From repository root:
@@ -41,6 +66,19 @@ bash scripts/lab2/setup.sh
 
 This performs a **fresh setup** (installs dependencies and resets databases using `migrate:fresh`).
 
+What `setup.sh` does:
+- installs PHP dependencies for all 3 services
+- copies `.env` files if missing
+- regenerates app keys
+- recreates all SQLite databases from scratch
+- reseeds student and course services
+
+Why first run can take time:
+- Composer must prepare Laravel dependencies for each service
+- all three databases are recreated from scratch
+
+Reruns are faster because `vendor/` folders are reused.
+
 Then open 3 terminals and run:
 
 ```bash
@@ -50,6 +88,18 @@ bash scripts/lab2/serve.sh enrollment
 ```
 
 All services are then ready for the curl commands in `lab2/tests/curl-tests.md`.
+
+## One-Terminal Fallback (npm)
+
+From repository root in **Git Bash**:
+
+```bash
+npm install
+npm run setup:lab2
+npm run serve:lab2
+```
+
+This uses `concurrently` to run all 3 services in one terminal.
 
 ## Setup & Run
 
@@ -107,7 +157,7 @@ Evidence output saved to: lab2/docs/evidence/
 
 ## Requirements
 
-PHP 8.2+, Composer, curl, bash
+See **Prerequisites** above.
 
 > Note: The academe frontend (lab1/academe/) is NOT
 > required for Lab 2. The three services run and are
