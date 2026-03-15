@@ -1,4 +1,8 @@
 # Academe — Student Course System
+### ITSAR2 313 – System Architecture and Integration 2 | Lab 1
+### BIST 3B
+
+> **GitHub (Lab 1):** <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab1/academe -->
 
 A Laravel 10 web application for managing students, courses, and enrollments. Built with the Repository Pattern (MVCR) for clean separation of concerns, SQLite for zero-config persistence, and a hand-crafted design system with no external CSS or JS frameworks.
 
@@ -169,10 +173,6 @@ academe/
 └── routes/
     └── web.php
 ```
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

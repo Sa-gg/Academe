@@ -24,21 +24,33 @@
 
 ---
 
+## GitHub Repositories
+
+| Lab | Link |
+|-----|------|
+| Lab 1 | <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab1 --> |
+| Lab 2 | <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab2 --> |
+| Lab 3 | <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab3 --> |
+
+---
+
 ## Repository Structure
 
 | Folder | Contents |
 |--------|----------|
 | `lab1/` | Monolithic + Microservices source code, architecture docs |
 | `lab2/` | Edge case testing, curl tests, evidence, report |
+| `lab3/` | (To be assigned) |
 
 ```
 sar-lab/
 ├── lab1/
-│   ├── academe/                    ← monolithic source code (port 8000)
+│   ├── README.md                       ← Lab 1 setup & docs
+│   ├── academe/                        ← monolithic source code (port 8000)
 │   ├── microservices/
-│   │   ├── student-service/        ← port 8001
-│   │   ├── course-service/         ← port 8002
-│   │   └── enrollment-service/     ← port 8003
+│   │   ├── student-service/            ← port 8001
+│   │   ├── course-service/             ← port 8002
+│   │   └── enrollment-service/         ← port 8003
 │   └── docs/
 │       ├── lab1-report.docx
 │       ├── architecture.md
@@ -49,6 +61,7 @@ sar-lab/
 │       └── reflection.docx
 │
 ├── lab2/
+│   ├── README.md                       ← Lab 2 setup & docs
 │   ├── services/
 │   │   ├── student-service/
 │   │   ├── course-service/
@@ -65,6 +78,9 @@ sar-lab/
 │           ├── 04-duplicate.txt
 │           ├── 05-dependency-down.txt
 │           └── 06-timeout.txt
+│
+├── lab3/
+│   └── README.md                       ← Lab 3 placeholder
 │
 └── README.md
 ```
@@ -221,6 +237,12 @@ All curl commands are in: [`lab2/tests/curl-tests.md`](lab2/tests/curl-tests.md)
 Evidence files are in: [`lab2/docs/evidence/`](lab2/docs/evidence/)
 
 Report is in: [`lab2/docs/lab2-report.docx`](lab2/docs/lab2-report.docx)
+
+---
+
+## Lab 3 — (To Be Assigned)
+
+> Lab 3 has not been assigned yet. See [`lab3/README.md`](lab3/README.md) for the placeholder.
 
 ---
 

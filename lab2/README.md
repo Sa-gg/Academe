@@ -19,6 +19,10 @@
 | 4 | Mogat, Ela Mae Trojillo |
 | 5 | Tibo-oc, Paul Felippe Gelle |
 
+## GitHub
+
+> **Repository (Lab 2):** <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab2 -->
+
 ## Services
 
 | Service | Port | Database |
