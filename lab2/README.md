@@ -31,7 +31,29 @@
 | course-service | 8002 | database/courses.sqlite |
 | enrollment-service | 8003 | database/enrollments.sqlite |
 
+## Quick Start (Recommended)
+
+From repository root:
+
+```bash
+bash scripts/lab2/setup.sh
+```
+
+This performs a **fresh setup** (installs dependencies and resets databases using `migrate:fresh`).
+
+Then open 3 terminals and run:
+
+```bash
+bash scripts/lab2/serve.sh student
+bash scripts/lab2/serve.sh course
+bash scripts/lab2/serve.sh enrollment
+```
+
+All services are then ready for the curl commands in `lab2/tests/curl-tests.md`.
+
 ## Setup & Run
+
+> For quick professor testing, use **Quick Start** above.
 
 Terminal 1:
 ```bash

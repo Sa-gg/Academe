@@ -33,7 +33,32 @@
 
 ---
 
+## Quick Start (Recommended)
+
+From repository root:
+
+```bash
+bash scripts/lab1/setup.sh
+```
+
+This performs a **fresh setup** (installs dependencies and resets databases using `migrate:fresh`).
+
+Then open 4 terminals and run:
+
+```bash
+bash scripts/lab1/serve-microservice.sh student
+bash scripts/lab1/serve-microservice.sh course
+bash scripts/lab1/serve-microservice.sh enrollment
+bash scripts/lab1/serve-academe.sh
+```
+
+Open: http://localhost:8000
+
+---
+
 ## Option A — Run with Microservices (Primary)
+
+> For quick professor testing, use **Quick Start** above.
 
 > **This is the primary architecture required by the lab.**
 

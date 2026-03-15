@@ -21,6 +21,17 @@
 
 ## Setup
 
+Quick start from repository root:
+
+```bash
+bash scripts/lab3/setup.sh
+bash scripts/lab3/serve.sh
+```
+
+`setup.sh` resets `server/data/products.json` from `server/data/products.seed.json` for a clean test baseline every run.
+
+Manual setup (equivalent):
+
 ```bash
 cd server
 npm install

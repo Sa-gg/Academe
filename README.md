@@ -83,7 +83,7 @@ sar-lab/
 │   ├── README.md                       ← Lab 3 setup & docs
 │   ├── docs/
 │   │   ├── lab3-report.docx
-│   │   └── lab3-report-copy.docx
+│   │   └── lab3-report.pdf
 │   ├── server/
 │   │   ├── server.js
 │   │   ├── controllers/
@@ -101,146 +101,48 @@ sar-lab/
 
 ## Lab 1 — Monolith vs Microservices
 
-### Option A — Run with Microservices (Default)
-
-> **This is the primary architecture required by the lab.**
-
-**Terminal 1 — Student Service:**
-```bash
-cd lab1/microservices/student-service
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/students.sqlite
-php artisan migrate --seed
-php artisan serve --port=8001
-```
-
-**Terminal 2 — Course Service:**
-```bash
-cd lab1/microservices/course-service
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/courses.sqlite
-php artisan migrate --seed
-php artisan serve --port=8002
-```
-
-**Terminal 3 — Enrollment Service:**
-```bash
-cd lab1/microservices/enrollment-service
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/enrollments.sqlite
-php artisan migrate --seed
-php artisan serve --port=8003
-```
-
-**Terminal 4 — Frontend (Monolith as Gateway):**
-```bash
-cd lab1/academe
-composer install
-npm install && npm run build
-cp .env.example .env
-php artisan key:generate
-touch database/database.sqlite
-php artisan migrate --seed
-# APP_BACKEND=microservices is already the default in .env.example
-php artisan config:clear
-php artisan serve
-# Visit http://localhost:8000
-# Topbar badge shows "⬡ Microservices"
-```
-
-### Option B — Run Monolithic Only (Optional)
-
-> **Optional:** The monolithic backend is provided for comparison purposes only.
+### Fast Setup (Recommended)
 
 ```bash
-# Step 1:  Navigate to the monolithic app
-cd lab1/academe
-
-# Step 2:  Install PHP dependencies
-composer install
-
-# Step 3:  Install frontend dependencies and build assets
-npm install && npm run build
-
-# Step 4:  Create environment file from example
-cp .env.example .env
-
-# Step 5:  Generate application key
-php artisan key:generate
-
-# Step 6:  Create the SQLite database file
-touch database/database.sqlite
-
-# Step 7:  Run migrations and seed data
-php artisan migrate --seed
-
-# Step 8:  Set backend mode to monolithic in .env
-#          APP_BACKEND=monolithic
-
-# Step 9:  Clear cached config
-php artisan config:clear
-
-# Step 10: Start the development server
-php artisan serve
-
-# Step 11: Visit http://localhost:8000
-#          Topbar badge shows "⬡ Monolithic"
+bash scripts/lab1/setup.sh
 ```
 
-### Switching Between Backends
+Fresh setup is automatic (`migrate:fresh` + seed where available).
+
+Run services in separate terminals:
 
 ```bash
-# Open lab1/academe/.env
-# Change: APP_BACKEND=monolithic  OR  APP_BACKEND=microservices
-cd lab1/academe
-php artisan config:clear
-# Refresh browser — topbar badge confirms active backend
+bash scripts/lab1/serve-microservice.sh student
+bash scripts/lab1/serve-microservice.sh course
+bash scripts/lab1/serve-microservice.sh enrollment
+bash scripts/lab1/serve-academe.sh
 ```
+
+Open: http://localhost:8000
+
+Detailed/manual steps: [`lab1/README.md`](lab1/README.md)
 
 ---
 
 ## Lab 2 — Edge Case Testing
 
-### Setup
+### Fast Setup (Recommended)
 
-**Terminal 1 — Student Service:**
 ```bash
-cd lab2/services/student-service
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/students.sqlite
-php artisan migrate --seed
-php artisan serve --port=8001
+bash scripts/lab2/setup.sh
 ```
 
-**Terminal 2 — Course Service:**
+Fresh setup is automatic (`migrate:fresh` + seed where available).
+
+Run services in separate terminals:
+
 ```bash
-cd lab2/services/course-service
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/courses.sqlite
-php artisan migrate --seed
-php artisan serve --port=8002
+bash scripts/lab2/serve.sh student
+bash scripts/lab2/serve.sh course
+bash scripts/lab2/serve.sh enrollment
 ```
 
-**Terminal 3 — Enrollment Service:**
-```bash
-cd lab2/services/enrollment-service
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/enrollments.sqlite
-php artisan migrate --seed
-php artisan serve --port=8003
-```
+Detailed/manual steps: [`lab2/README.md`](lab2/README.md)
 
 ### Running the Tests
 
@@ -261,7 +163,16 @@ Lab 3 is complete and organized with:
 
 Primary report: [`lab3/docs/lab3-report.pdf`](lab3/docs/lab3-report.pdf)
 
-See full instructions in [`lab3/README.md`](lab3/README.md).
+### Fast Setup (Recommended)
+
+```bash
+bash scripts/lab3/setup.sh
+bash scripts/lab3/serve.sh
+```
+
+`setup.sh` restores `products.json` from seed for consistent testing.
+
+Detailed/manual steps: [`lab3/README.md`](lab3/README.md).
 
 ---
 
@@ -277,8 +188,8 @@ See full instructions in [`lab3/README.md`](lab3/README.md).
 
 ## Report Files (Per Lab)
 
-| Lab | Report (PDF) | Source (DOCX) |
-|-----|--------------|---------------|
-| Lab 1 | [`lab1/docs/lab1-report.pdf`](lab1/docs/lab1-report.pdf) | lab1/docs/lab1-report.docx |
-| Lab 2 | [`lab2/docs/lab2-report.pdf`](lab2/docs/lab2-report.pdf) | lab2/docs/lab2-report.docx |
-| Lab 3 | [`lab3/docs/lab3-report.pdf`](lab3/docs/lab3-report.pdf) | lab3/docs/lab3-report.docx |
+| Lab | Report (PDF) |
+|-----|--------------|
+| Lab 1 | [`lab1/docs/lab1-report.pdf`](lab1/docs/lab1-report.pdf) |
+| Lab 2 | [`lab2/docs/lab2-report.pdf`](lab2/docs/lab2-report.pdf) |
+| Lab 3 | [`lab3/docs/lab3-report.pdf`](lab3/docs/lab3-report.pdf) |
