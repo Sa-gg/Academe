@@ -13,7 +13,7 @@
 
 | # | Name |
 |---|------|
-| 1 | Sagum, Patrick R. |
+| 1 | Sagum, Patrick Ruiz |
 | 2 | Henson, Princess Terana Caram Rasonable |
 | 3 | Gargarita, Trisha Faith Casiano |
 | 4 | Mogat, Ela Mae Trojillo |
@@ -21,7 +21,7 @@
 
 ## GitHub
 
-> **Repository (Lab 2):** <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab2 -->
+> **Repository (Lab 2):** [lab2/](./)
 
 ## Services
 
@@ -79,7 +79,8 @@ Evidence output saved to: lab2/docs/evidence/
 | Source code | lab2/services/ |
 | curl test commands | lab2/tests/curl-tests.md |
 | Edge case report | lab2/docs/report.md |
-| Formal report | lab2/docs/lab2-report.docx |
+| Formal report (PDF) | lab2/docs/lab2-report.pdf |
+| Source report (DOCX) | lab2/docs/lab2-report.docx |
 | Evidence files | lab2/docs/evidence/ |
 
 ## Requirements

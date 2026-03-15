@@ -10,7 +10,7 @@
 
 | # | Name |
 |---|------|
-| 1 | Sagum, Patrick R. |
+| 1 | Sagum, Patrick Ruiz |
 | 2 | Henson, Princess Terana Caram Rasonable |
 | 3 | Gargarita, Trisha Faith Casiano |
 | 4 | Mogat, Ela Mae Trojillo |
@@ -18,7 +18,7 @@
 
 ## GitHub
 
-> **Repository (Lab 1):** <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab1 -->
+> **Repository (Lab 1):** [lab1/](./)
 
 ---
 
@@ -176,7 +176,8 @@ APP_BACKEND=monolithic     →  repositories call Eloquent models directly
 | Architecture report (DOCX) | `lab1/docs/architecture.docx` |
 | Comparison table | `lab1/docs/comparison-table.md` |
 | Reflection | `lab1/docs/reflection.md` |
-| Lab 1 formal report | `lab1/docs/lab1-report.docx` |
+| Lab 1 formal report (PDF) | `lab1/docs/lab1-report.pdf` |
+| Lab 1 source report (DOCX) | `lab1/docs/lab1-report.docx` |
 
 ---
 

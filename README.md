@@ -28,9 +28,9 @@
 
 | Lab | Link |
 |-----|------|
-| Lab 1 | <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab1 --> |
-| Lab 2 | <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab2 --> |
-| Lab 3 | <!-- TODO: replace with your GitHub link, e.g. https://github.com/username/sar-lab1/tree/main/lab3 --> |
+| Lab 1 | [lab1/](lab1/) |
+| Lab 2 | [lab2/](lab2/) |
+| Lab 3 | [lab3/](lab3/) |
 
 ---
 
@@ -40,7 +40,7 @@
 |--------|----------|
 | `lab1/` | Monolithic + Microservices source code, architecture docs |
 | `lab2/` | Edge case testing, curl tests, evidence, report |
-| `lab3/` | (To be assigned) |
+| `lab3/` | Business Logic API (docs + server + tests) |
 
 ```
 sar-lab/
@@ -80,7 +80,19 @@ sar-lab/
 │           └── 06-timeout.txt
 │
 ├── lab3/
-│   └── README.md                       ← Lab 3 placeholder
+│   ├── README.md                       ← Lab 3 setup & docs
+│   ├── docs/
+│   │   ├── lab3-report.docx
+│   │   └── lab3-report-copy.docx
+│   ├── server/
+│   │   ├── server.js
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── data/
+│   │   └── package.json
+│   └── tests/
+│       └── curl-tests.md
 │
 └── README.md
 ```
@@ -236,13 +248,20 @@ All curl commands are in: [`lab2/tests/curl-tests.md`](lab2/tests/curl-tests.md)
 
 Evidence files are in: [`lab2/docs/evidence/`](lab2/docs/evidence/)
 
-Report is in: [`lab2/docs/lab2-report.docx`](lab2/docs/lab2-report.docx)
+Report is in: [`lab2/docs/lab2-report.pdf`](lab2/docs/lab2-report.pdf)
 
 ---
 
 ## Lab 3 — (To Be Assigned)
 
-> Lab 3 has not been assigned yet. See [`lab3/README.md`](lab3/README.md) for the placeholder.
+Lab 3 is complete and organized with:
+- API source in [`lab3/server/`](lab3/server/)
+- test commands in [`lab3/tests/curl-tests.md`](lab3/tests/curl-tests.md)
+- report files in [`lab3/docs/`](lab3/docs/)
+
+Primary report: [`lab3/docs/lab3-report.pdf`](lab3/docs/lab3-report.pdf)
+
+See full instructions in [`lab3/README.md`](lab3/README.md).
 
 ---
 
@@ -253,3 +272,13 @@ Report is in: [`lab2/docs/lab2-report.docx`](lab2/docs/lab2-report.docx)
 - Node.js 18+
 - NPM
 - curl
+
+---
+
+## Report Files (Per Lab)
+
+| Lab | Report (PDF) | Source (DOCX) |
+|-----|--------------|---------------|
+| Lab 1 | [`lab1/docs/lab1-report.pdf`](lab1/docs/lab1-report.pdf) | lab1/docs/lab1-report.docx |
+| Lab 2 | [`lab2/docs/lab2-report.pdf`](lab2/docs/lab2-report.pdf) | lab2/docs/lab2-report.docx |
+| Lab 3 | [`lab3/docs/lab3-report.pdf`](lab3/docs/lab3-report.pdf) | lab3/docs/lab3-report.docx |
